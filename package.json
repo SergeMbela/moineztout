@@ -2,13 +2,13 @@
   "name": "moineztout-dashboard",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
     "build": "ng build",
+    "postbuild": "cp dist/moineztout-dashboard/browser/index.html dist/moineztout-dashboard/browser/404.html",
+    "start": "ng serve",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:moineztout-dashboard": "node dist/moineztout-dashboard/server/server.mjs",
-    "deploy": "ng build && copy dist\\moineztout-dashboard\\browser\\index.html dist\\moineztout-dashboard\\browser\\404.html && ng deploy"
+    "deploy": "ng build --base-href=/moineztout-dashboard/ && copy dist\\moineztout-dashboard\\browser\\index.html dist\\moineztout-dashboard\\browser\\404.html && ng deploy --no-build"
   },
   "private": true,
   "dependencies": {

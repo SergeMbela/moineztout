@@ -15,5 +15,6 @@ export const routes: Routes = [
   { path: 'prospects', component: ProspectsComponent },
   { path: 'commissions', component: CommissionsComponent },
   { path: 'ventes', component: VentesComponent },
-  { path: 'ca', component: CaComponent }
+  { path: 'ca', component: CaComponent },
+  { path: '**', redirectTo: 'stock' }
 ];
