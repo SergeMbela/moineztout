@@ -1,0 +1,59 @@
+.container { font-family: sans-serif; max-width: 800px; margin: 2rem auto; }
+.stock-table { width: 100%; border-collapse: collapse; }
+.stock-table th, .stock-table td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+
+/* Styles dynamiques */
+.low-stock { background-color: #fff4f4; }
+.stock-count { font-weight: bold; font-size: 1.1rem; }
+.badge { background: orange; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-left: 8px;}
+
+/* Boutons */
+.btn { border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; margin-right: 5px; color: white; }
+.btn-in { background-color: #2ecc71; } /* Vert */
+.btn-out { background-color: #e74c3c; } /* Rouge */
+
+/* ... Votre CSS existant ... */
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Carte de formulaire */
+.creation-card {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-bottom: 30px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Champs de formulaire */
+.form-group { margin-bottom: 15px; }
+.form-row { display: flex; gap: 20px; }
+.form-row .form-group { flex: 1; }
+
+label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; color: #555; }
+input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Important pour que le padding ne casse pas la largeur */
+}
+
+input.ng-invalid.ng-touched { border-color: #e74c3c; } /* Bordure rouge si invalide */
+.error-text { color: #e74c3c; font-size: 0.8em; }
+
+/* Nouveaux boutons */
+.btn-primary { background-color: #3498db; color: white; padding: 10px 20px; font-size: 1rem; }
+.btn-save { background-color: #2c3e50; color: white; width: 100%; margin-top: 10px; }
+.btn:disabled { background-color: #ccc; cursor: not-allowed; }

@@ -1,0 +1,32 @@
+<div class="container">
+  <h2>Enregistrer une Vente</h2>
+
+  <div class="card form-card">
+    <form [formGroup]="venteForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="product">Produit</label>
+        <select id="product" formControlName="product_id" class="form-control">
+          <option value="" disabled>Sélectionner un produit</option>
+          <option *ngFor="let p of products" [value]="p.id">
+            {{ p.name }} (Stock: {{ p.current_stock }}) - {{ (p.price || 0) | currency:'EUR' }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="quantity">Quantité</label>
+        <input type="number" id="quantity" formControlName="quantity" min="1" class="form-control">
+      </div>
+
+      <div class="summary">
+        <div class="total-price">
+          Total à payer : <span>{{ totalPrice | currency:'EUR' }}</span>
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="!venteForm.valid" class="btn-submit">
+        Valider la vente
+      </button>
+    </form>
+  </div>
+</div>

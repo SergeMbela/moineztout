@@ -1,0 +1,12 @@
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a routerLink="/">Moineztout Dashboard</a>
+  </div>
+  <ul class="navbar-nav">
+    <li *ngFor="let item of navItems" class="nav-item">
+      <a [routerLink]="item.path" routerLinkActive="active" class="nav-link">
+        {{ item.label }}
+      </a>
+    </li>
+  </ul>
+</nav>

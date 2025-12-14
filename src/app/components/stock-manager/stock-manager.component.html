@@ -1,0 +1,168 @@
+<div class="container">
+  <div class="header-actions">
+    <h1>Gestion de Stock</h1>
+    <button (click)="showCreateForm = !showCreateForm" class="btn btn-primary">
+      {{ showCreateForm ? 'Annuler' : '+ Nouveau Produit' }}
+    </button>
+  </div>
+
+  <div *ngIf="showCreateForm && productForm" class="creation-card">
+    <h3>Ajouter une référence</h3>
+    
+    <form [formGroup]="productForm" (ngSubmit)="onSubmitCreate()">
+      
+      <div class="form-group">
+        <label>Code SKU (ex: REF-001)</label>
+        <input type="text" formControlName="sku" placeholder="Code unique">
+        <small *ngIf="productForm.get('sku')?.invalid && productForm.get('sku')?.touched" class="error-text">
+          Le SKU est requis (min 3 chars).
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>Nom du produit</label>
+        <input type="text" formControlName="name" placeholder="Ex: Chaise de bureau">
+      </div>
+
+      <div class="form-group">
+        <label>Seuil d'alerte (Stock Min)</label>
+        <input type="number" formControlName="min_stock_threshold">
+      </div>
+
+      <div class="form-group">
+        <label>Description (Optionnel)</label>
+        <input type="text" formControlName="description">
+      </div>
+
+      <button type="submit" [disabled]="productForm.invalid" class="btn btn-save">
+        Sauvegarder
+      </button>
+    </form>
+  </div>
+
+  <hr>
+
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'stocks'" (click)="activeTab = 'stocks'" style="cursor: pointer">Mes références</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'prices'" (click)="activeTab = 'prices'" style="cursor: pointer">Historique Achats</a>
+    </li>
+  </ul>
+
+  <ng-container *ngIf="products$ | async as products">
+    <div *ngIf="activeTab === 'stocks'">
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Nom</th>
+            <th>Mon Prix</th>
+            <th>Modifier</th>
+            <th>Total</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let product of products">
+            <td>{{ product.sku }}</td>
+            <td>{{ product.name }}</td>
+            <td>{{ $any(product).myprice | currency:'EUR' }}</td>
+            <td><button class="btn btn-sm btn-warning" (click)="openPriceModal(product)">Éditer</button></td>
+            <td>{{ (product.current_stock * ($any(product).myprice || 0)) | currency:'EUR' }}</td>
+            <td>
+              <button (click)="addStock(product)" class="btn btn-in">+</button>
+              <button (click)="removeStock(product)" class="btn btn-out">-</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="activeTab === 'prices'">
+ <!-- Liste Historique -->
+  <div class="card list-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3>Historique des Approvisionnements</h3>
+      <div class="d-flex align-items-center">
+        <label class="me-2">Filtrer :</label>
+        <select class="form-control w-auto" [(ngModel)]="filterSupplierId" (change)="applyFilter()">
+          <option value="">Tous les fournisseurs</option>
+          <option *ngFor="let f of fournisseurs$ | async" [value]="f.id">{{ f.name }}</option>
+        </select>
+      </div>
+    </div>
+
+    <table class="stock-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Fournisseur</th>
+          <th>Produit</th>
+          <th>Quantité</th>
+          <th>Prix Unitaire</th>
+          <th>Total</th>
+          <th>Mon Prix</th>
+          <th>Total Vente</th>
+          <th>Marge</th>
+          <th>Modifier</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of paginatedPurchases">
+          <td>{{ p.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ p.suppliers?.name || '-' }}</td>
+          <td>
+            <span class="fw-bold">{{ p.products?.name || 'Produit inconnu' }}</span>
+            <br><small class="text-muted">{{ p.products?.sku }}</small>
+          </td>
+          <td><span class="badge bg-success rounded-pill">+{{ p.quantity }}</span></td>
+          <td>{{ p.supplier_price | currency:'EUR' }}</td>
+          <td class="fw-bold">{{ (p.quantity * p.supplier_price) | currency:'EUR' }}</td>
+          <td>{{ findProduct(products, p.product_id)?.myprice | currency:'EUR' }}</td>
+          <td>{{ (p.quantity * (findProduct(products, p.product_id)?.myprice || 0)) | currency:'EUR' }}</td>
+          <td>{{ ((p.quantity * (findProduct(products, p.product_id)?.myprice || 0)) - (p.quantity * p.supplier_price)) | currency:'EUR' }}</td>
+          <td><button class="btn btn-sm btn-warning" *ngIf="p.products" (click)="openPriceModal(findProduct(products, p.product_id), p.product_id)">Éditer</button></td>
+        </tr>
+        <tr *ngIf="filteredPurchases.length === 0">
+          <td colspan="10" class="text-center">Aucun historique disponible pour le moment.</td>
+        </tr>
+      </tbody>
+      <tfoot *ngIf="filteredPurchases.length > 0">
+        <tr>
+          <td colspan="5" style="text-align: right; font-weight: bold; padding: 10px;">Totaux :</td>
+          <td style="font-weight: bold; padding: 10px;">{{ totalExpenses | currency:'EUR' }}</td>
+          <td></td>
+          <td style="font-weight: bold; padding: 10px;">{{ totalSales | currency:'EUR' }}</td>
+          <td style="font-weight: bold; padding: 10px;" [class.text-success]="totalMargin >= 0" [class.text-danger]="totalMargin < 0">{{ totalMargin | currency:'EUR' }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="totalPages > 1">
+      <button class="btn btn-sm btn-outline-secondary" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1">Précédent</button>
+      <span>Page {{ currentPage }} sur {{ totalPages }}</span>
+      <button class="btn btn-sm btn-outline-secondary" (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages">Suivant</button>
+    </div>
+  </div>
+    </div>
+  </ng-container>
+
+  <!-- Modal Edition Prix -->
+  <div *ngIf="showPriceModal" class="price-modal-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+    <div class="price-modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 300px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+      <h3>Modifier le prix</h3>
+      <div class="form-group mb-3">
+        <label>Prix de vente (€)</label>
+        <input type="number" [(ngModel)]="editingPrice" class="form-control">
+      </div>
+      <div class="d-flex justify-content-end gap-2">
+        <button (click)="closePriceModal()" class="btn btn-secondary">Annuler</button>
+        <button (click)="savePrice()" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>

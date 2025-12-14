@@ -1,0 +1,42 @@
+<div class="container">
+  <h2>Analyse du Chiffre d'Affaires</h2>
+
+  <div class="dashboard-cards">
+    <div class="card metric-card">
+      <h3>Chiffre d'Affaires Total</h3>
+      <div class="value">{{ totalCA | currency:'EUR' }}</div>
+    </div>
+  </div>
+
+  <div class="card chart-card">
+    <h3>Évolution du CA</h3>
+    <div class="chart-container"><canvas id="caChart"></canvas></div>
+  </div>
+
+  <div class="card list-card">
+    <h3>Performance par Produit</h3>
+    <div *ngIf="loading">Chargement des données...</div>
+    
+    <table class="table" *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Produit</th>
+          <th>Quantité Vendue</th>
+          <th>CA Généré</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of salesByProduct">
+          <td>{{ item.sku }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.quantity }}</td>
+          <td><strong>{{ item.total | currency:'EUR' }}</strong></td>
+        </tr>
+        <tr *ngIf="salesByProduct.length === 0">
+          <td colspan="4" class="text-center">Aucune vente enregistrée pour le moment.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

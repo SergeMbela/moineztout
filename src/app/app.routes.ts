@@ -1,3 +1,19 @@
 import { Routes } from '@angular/router';
+import { StockManagerComponent } from './components/stock-manager/stock-manager.component';
+import { FournisseursComponent } from './components/fournisseurs/fournisseurs.component';
+import { ProspectsComponent } from './components/prospects/prospects.component';
+import { CommissionsComponent } from './components/commissions/commissions.component';
+import { AchatFournisseursComponent } from './components/achat-fournisseurs/achat-fournisseurs.component';
+import { VentesComponent } from './components/ventes/ventes.component';
+import { CaComponent } from './components/ca/ca.component';
 
-export const routes: Routes = [];
+export const routes: Routes = [
+  { path: '', redirectTo: 'stock', pathMatch: 'full' },
+  { path: 'stock', component: StockManagerComponent },
+  { path: 'fournisseurs', component: FournisseursComponent },
+  { path: 'approvisionnement', component: AchatFournisseursComponent },
+  { path: 'prospects', component: ProspectsComponent },
+  { path: 'commissions', component: CommissionsComponent },
+  { path: 'ventes', component: VentesComponent },
+  { path: 'ca', component: CaComponent }
+];

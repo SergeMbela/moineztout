@@ -1,0 +1,100 @@
+<div class="container">
+  <h2>Approvisionnement</h2>
+
+  <!-- Formulaire d'ajout -->
+  <div class="card form-card">
+    <h3>Nouvelle Entrée de Stock</h3>
+    <form [formGroup]="purchaseForm" (ngSubmit)="onSubmitPurchase()">
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="supplier">Fournisseur</label>
+          <select id="supplier" formControlName="supplier_id" class="form-control">
+            <option value="" disabled>Sélectionner un fournisseur</option>
+            <option *ngFor="let fournisseur of fournisseurs$ | async" [value]="fournisseur.id">
+              {{ fournisseur.name }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="product">Produit</label>
+          <select id="product" formControlName="product_id" class="form-control">
+            <option value="" disabled>Sélectionner un produit</option>
+            <option *ngFor="let product of products$ | async" [value]="product.id">
+              {{ product.name }} (Stock: {{ product.current_stock }})
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="quantity">Quantité</label>
+          <input id="quantity" type="number" formControlName="quantity" min="1" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="price">Prix Achat (€)</label>
+          <input id="price" type="number" formControlName="supplier_price" min="0" step="0.01" class="form-control">
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="purchaseForm.invalid" class="btn-submit">Enregistrer l'entrée</button>
+    </form>
+  </div>
+
+  <!-- Liste Historique -->
+  <div class="card list-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3>Historique des Approvisionnements</h3>
+      <div class="d-flex align-items-center">
+        <label class="me-2">Filtrer :</label>
+        <select class="form-control w-auto" [(ngModel)]="filterSupplierId" (change)="applyFilter()">
+          <option value="">Tous les fournisseurs</option>
+          <option *ngFor="let f of fournisseurs$ | async" [value]="f.id">{{ f.name }}</option>
+        </select>
+      </div>
+    </div>
+
+    <table class="stock-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Fournisseur</th>
+          <th>Produit</th>
+          <th>Quantité</th>
+          <th>Prix Unitaire</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of paginatedPurchases">
+          <td>{{ p.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ p.suppliers?.name || '-' }}</td>
+          <td>
+            <span class="fw-bold">{{ p.products?.name || 'Produit inconnu' }}</span>
+            <br><small class="text-muted">{{ p.products?.sku }}</small>
+          </td>
+          <td><span class="badge bg-success rounded-pill">+{{ p.quantity }}</span></td>
+          <td>{{ p.supplier_price | currency:'EUR' }}</td>
+          <td class="fw-bold">{{ (p.quantity * p.supplier_price) | currency:'EUR' }}</td>
+        </tr>
+        <tr *ngIf="filteredPurchases.length === 0">
+          <td colspan="6" class="text-center">Aucun historique disponible pour le moment.</td>
+        </tr>
+      </tbody>
+      <tfoot *ngIf="filteredPurchases.length > 0">
+        <tr>
+          <td colspan="5" style="text-align: right; font-weight: bold; padding: 10px;">Total des dépenses :</td>
+          <td style="font-weight: bold; padding: 10px;">{{ totalExpenses | currency:'EUR' }}</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="totalPages > 1">
+      <button class="btn btn-sm btn-outline-secondary" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1">Précédent</button>
+      <span>Page {{ currentPage }} sur {{ totalPages }}</span>
+      <button class="btn btn-sm btn-outline-secondary" (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages">Suivant</button>
+    </div>
+  </div>
+</div>
