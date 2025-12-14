@@ -221,4 +221,11 @@ export class SupabaseService {
     if (error) throw error;
     return data;
   }
+
+  // --- AUTH & SESSION ---
+
+  async signOut() {
+    const { error } = await this.supabase.auth.signOut();
+    if (error) throw error;
+  }
 }

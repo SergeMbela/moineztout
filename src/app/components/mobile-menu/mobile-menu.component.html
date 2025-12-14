@@ -1,0 +1,27 @@
+<!-- Bouton Hamburger (visible uniquement sur mobile via CSS) -->
+<button class="menu-toggle" (click)="toggleMenu()" aria-label="Ouvrir le menu">
+  ☰
+</button>
+
+<!-- Overlay sombre pour fermer en cliquant à côté -->
+<div class="mobile-overlay" *ngIf="isOpen" (click)="closeMenu()"></div>
+
+<!-- Panneau de navigation -->
+<nav class="mobile-nav" [class.open]="isOpen">
+  <div class="nav-header">
+    <h3>Menu</h3>
+    <button class="close-btn" (click)="closeMenu()">×</button>
+  </div>
+  
+  <ul class="nav-links">
+    <li *ngFor="let item of menuItems">
+      <a [routerLink]="item.route" routerLinkActive="active" (click)="closeMenu()">
+        {{ item.label }}
+      </a>
+    </li>
+    <li class="separator"></li>
+    <li>
+      <button class="logout-btn" (click)="logout()">Se déconnecter</button>
+    </li>
+  </ul>
+</nav>
