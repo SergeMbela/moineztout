@@ -61,7 +61,7 @@
             <th>Mon Prix</th>
             <th>Modifier</th>
             <th>Total</th>
-            <th>Actions</th>
+      
           </tr>
         </thead>
         <tbody>
@@ -71,10 +71,6 @@
             <td>{{ $any(product).myprice | currency:'EUR' }}</td>
             <td><button class="btn btn-sm btn-warning" (click)="openPriceModal(product)">Éditer</button></td>
             <td>{{ (product.current_stock * ($any(product).myprice || 0)) | currency:'EUR' }}</td>
-            <td>
-              <button (click)="addStock(product)" class="btn btn-in">+</button>
-              <button (click)="removeStock(product)" class="btn btn-out">-</button>
-            </td>
           </tr>
         </tbody>
       </table>
