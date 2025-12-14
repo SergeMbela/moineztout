@@ -3,12 +3,12 @@
   "version": "0.0.0",
   "scripts": {
     "build": "ng build",
-    "postbuild": "cp dist/moineztout-dashboard/browser/index.html dist/moineztout-dashboard/browser/404.html",
+    "postbuild": "node copy-404.js",
     "start": "ng serve",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:moineztout-dashboard": "node dist/moineztout-dashboard/server/server.mjs",
-    "deploy": "ng build --base-href=/moineztout/ && copy dist\\moineztout-dashboard\\browser\\index.html dist\\moineztout-dashboard\\browser\\404.html && ng deploy --no-build --dir=dist/moineztout-dashboard/browser"
+    "deploy": "ng build --base-href=/moineztout/ && npm run postbuild && ng deploy --no-build --dir=dist/moineztout-dashboard/browser"
   },
   "private": true,
   "dependencies": {
