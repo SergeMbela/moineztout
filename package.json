@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:moineztout-dashboard": "node dist/moineztout-dashboard/server/server.mjs"
+    "serve:ssr:moineztout-dashboard": "node dist/moineztout-dashboard/server/server.mjs",
+    "deploy": "ng build && copy dist\\moineztout-dashboard\\browser\\index.html dist\\moineztout-dashboard\\browser\\404.html && ng deploy"
   },
   "private": true,
   "dependencies": {
@@ -37,6 +38,7 @@
     "@types/jasmine": "~5.1.0",
     "@types/node": "^18.18.0",
     "angular-cli-ghpages": "^2.0.3",
+    "gh-pages": "^6.3.0",
     "jasmine-core": "~5.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
