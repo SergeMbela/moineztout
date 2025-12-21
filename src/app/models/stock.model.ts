@@ -6,6 +6,7 @@ export interface Product {
   min_stock_threshold: number;
   price?: number;
   myprice?: number;
+  image_path?: string;
   description?: string;
   created_at?: string;
   updated_at?: string;

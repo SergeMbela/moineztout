@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import { Product, StockMovement } from '../models/stock.model';
 import { Fournisseur } from '../models/fournisseur.model';
 import { Vente } from '../models/vente.model';
+import { BoutiqueItem } from '../models/boutique.model';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({
@@ -222,10 +223,168 @@ export class SupabaseService {
     return data;
   }
 
+  // --- GESTION BOUTIQUE ---
+
+  async getBoutiqueItems(onlyActive: boolean = true) {
+    let query = this.supabase
+      .from('boutique_items')
+      .select('*, products(current_stock)') // On récupère aussi le stock lié
+      .order('created_at', { ascending: false });
+
+    if (onlyActive) {
+      query = query.eq('is_active', true);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  }
+
+  async createBoutiqueItem(item: Partial<BoutiqueItem>) {
+    const { error } = await this.supabase
+      .from('boutique_items')
+      .insert(item);
+    if (error) throw error;
+  }
+
+  async updateBoutiqueItem(id: string, item: Partial<BoutiqueItem>) {
+    const { error } = await this.supabase
+      .from('boutique_items')
+      .update(item)
+      .eq('id', id);
+    if (error) throw error;
+  }
+
+  async deleteBoutiqueItem(id: string, imageUrl?: string | null) {
+    // D'abord, supprimer l'image du stockage si une URL est fournie
+    if (imageUrl) {
+      await this.deleteProductImage(imageUrl);
+    }
+
+    // Ensuite, supprimer l'enregistrement de la base de données
+    const { error } = await this.supabase
+      .from('boutique_items')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erreur suppression article boutique', error);
+      throw error;
+    }
+  }
+
   // --- AUTH & SESSION ---
 
   async signOut() {
     const { error } = await this.supabase.auth.signOut();
     if (error) throw error;
+  }
+
+  // --- STOCKAGE (IMAGES) ---
+
+  async uploadProductImage(file: File, path: string, onProgress?: (percent: number) => void): Promise<string> {
+    // Si un callback de progression est fourni, on utilise XMLHttpRequest pour le suivi
+    if (onProgress) {
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        const url = `${environment.supabaseUrl}/storage/v1/object/${environment.storageBucket}/${path}`;
+        
+        xhr.open('POST', url);
+        
+        this.supabase.auth.getSession().then(({ data: { session } }) => {
+          const token = session?.access_token || environment.supabaseKey;
+          
+          xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+          xhr.setRequestHeader('apikey', environment.supabaseKey);
+          xhr.setRequestHeader('x-upsert', 'true');
+          if (file.type) xhr.setRequestHeader('Content-Type', file.type);
+
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              const percent = Math.round((e.loaded / e.total) * 100);
+              onProgress(percent);
+            }
+          };
+
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(null);
+            } else {
+              // Tentative de récupération du message d'erreur détaillé de Supabase
+              let errorMessage = xhr.statusText || `Upload failed (Status ${xhr.status})`;
+              try {
+                if (xhr.responseText) {
+                  const res = JSON.parse(xhr.responseText);
+                  if (res.message) errorMessage = res.message;
+                  else if (res.error) errorMessage = typeof res.error === 'string' ? res.error : JSON.stringify(res.error);
+                }
+              } catch (e) {
+                // Si ce n'est pas du JSON valide, on garde le message par défaut
+              }
+
+              const err = new Error(errorMessage);
+              (err as any).statusCode = xhr.status;
+              reject(err);
+            }
+          };
+
+          xhr.onerror = () => {
+            const err = new Error('Network error');
+            (err as any).statusCode = 0;
+            reject(err);
+          };
+          xhr.send(file);
+        });
+      });
+    } else {
+      // Sinon, méthode standard SDK (utilisée par StockManager par exemple)
+      const { error } = await this.supabase.storage
+        .from(environment.storageBucket)
+        .upload(path, file, { upsert: true });
+
+      if (error) {
+        console.error('Erreur upload storage (Supabase):', error);
+        throw error;
+      }
+    }
+
+    const { data } = this.supabase.storage
+      .from(environment.storageBucket)
+      .getPublicUrl(path);
+
+    return data.publicUrl;
+  }
+
+  async deleteProductImage(url: string) {
+    // Extraction du nom de fichier depuis l'URL publique
+    const path = url.split(`/${environment.storageBucket}/`).pop();
+    
+    if (path) {
+      // Nettoyage (query params) et décodage pour gérer les espaces/accents
+      const cleanPath = decodeURIComponent(path.split('?')[0]);
+
+      // 1. Vérification préalable pour éviter l'erreur 404 "Object not found" dans la console
+      // On sépare le dossier du nom de fichier si nécessaire
+      const lastSlashIndex = cleanPath.lastIndexOf('/');
+      const folder = lastSlashIndex > -1 ? cleanPath.substring(0, lastSlashIndex) : '';
+      const fileName = lastSlashIndex > -1 ? cleanPath.substring(lastSlashIndex + 1) : cleanPath;
+
+      const { data: existingFiles } = await this.supabase.storage
+        .from(environment.storageBucket)
+        .list(folder, { search: fileName });
+
+      // Si le fichier n'est pas trouvé, on considère qu'il est déjà supprimé
+      if (!existingFiles || !existingFiles.some(f => f.name === fileName)) {
+        return;
+      }
+
+      const { error } = await this.supabase.storage
+        .from(environment.storageBucket)
+        .remove([cleanPath]);
+      
+      if (error) {
+        console.error('Erreur suppression image storage', error);
+      }
+    }
   }
 }

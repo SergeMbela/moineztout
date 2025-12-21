@@ -7,6 +7,7 @@ import { AchatFournisseursComponent } from './components/achat-fournisseurs/acha
 import { VentesComponent } from './components/ventes/ventes.component';
 import { CaComponent } from './components/ca/ca.component';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
+import { BoutiqueComponent } from './pages/boutique/boutique.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'stock', pathMatch: 'full' },
@@ -16,6 +17,7 @@ export const routes: Routes = [
   { path: 'prospects', component: ProspectsComponent },
   { path: 'commissions', component: CommissionsComponent },
   { path: 'ventes', component: VentesComponent },
+    { path: 'boutique', component: BoutiqueComponent },
   { path: 'ca', component: CaComponent },
   { path: '**', component: PageNotFoundComponent }
 ];

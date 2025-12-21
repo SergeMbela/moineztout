@@ -5,6 +5,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { Product } from '../../models/stock.model';
+import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-stock-manager',
   standalone: true,
@@ -37,6 +38,7 @@ export class StockManagerComponent implements OnInit {
   showPriceModal = false;
   editingProduct: any = null;
   editingPrice: number = 0;
+  uploadingProductId: string | null = null;
 
   get totalPages(): number {
     return Math.ceil(this.filteredPurchases.length / this.itemsPerPage);
@@ -181,6 +183,105 @@ export class StockManagerComponent implements OnInit {
     } catch (error) {
       console.error(error);
       this.toastService.error('Erreur lors de la mise à jour du prix');
+    }
+  }
+
+  async uploadPhoto(event: any, product: any) {
+    let file = event.target.files[0];
+    if (!file) return;
+
+    // Validation de la taille initiale (Max 10MB avant compression)
+    if (file.size > 10 * 1024 * 1024) {
+      this.toastService.error("L'image est trop volumineuse (Max 10MB)");
+      return;
+    }
+
+    this.uploadingProductId = product.id;
+
+    try {
+      // Compression automatique (Redimensionnement + Qualité 70%)
+      file = await this.compressImage(file);
+
+      // Création d'un nom de fichier unique
+      const fileExt = 'jpg'; // On force l'extension jpg car la compression sort du JPEG
+      // Nettoyage du SKU pour éviter les caractères spéciaux (espaces, /, #) qui causent l'erreur 400
+      const safeSku = product.sku.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const filePath = `boutique/${safeSku}_${Date.now()}.${fileExt}`;
+
+      const imageUrl = await this.supabaseService.uploadProductImage(file, filePath);
+
+      // Mise à jour du produit (suppose l'existence de la colonne 'image_path')
+      await this.supabaseService.updateProduct(product.id, { image_path: imageUrl } as any);
+      
+      this.toastService.success('Photo téléversée avec succès');
+    } catch (error: any) {
+      console.error('Erreur upload:', error);
+      if (error.message === 'Bucket not found' || (error.error && error.error === 'Bucket not found')) {
+        this.toastService.error(`Erreur config: Le bucket '${environment.storageBucket}' n'existe pas dans Supabase.`);
+      } else {
+        this.toastService.error("Erreur lors de l'envoi de la photo");
+      }
+    } finally {
+      this.uploadingProductId = null;
+      event.target.value = ''; // Réinitialise l'input pour permettre de re-sélectionner le même fichier si besoin
+    }
+  }
+
+  private compressImage(file: File): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event: any) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1024; // Largeur max en pixels
+          
+          // Calcul des nouvelles dimensions
+          const scaleSize = MAX_WIDTH / img.width;
+          const width = (scaleSize < 1) ? MAX_WIDTH : img.width;
+          const height = (scaleSize < 1) ? img.height * scaleSize : img.height;
+
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Conversion en Blob JPEG avec qualité 0.7 (70%)
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve(newFile);
+            } else reject(new Error('Erreur lors de la compression'));
+          }, 'image/jpeg', 0.7);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  }
+
+  async deletePhoto(product: any) {
+    if (!product.image_path) return;
+    
+    if (!confirm('Voulez-vous vraiment supprimer cette photo ?')) return;
+
+    try {
+      // 1. Supprimer du stockage
+      await this.supabaseService.deleteProductImage(product.image_path);
+
+      // 2. Mettre à jour la base de données (supprimer le lien)
+      await this.supabaseService.updateProduct(product.id, { image_path: null } as any);
+      
+      this.toastService.success('Photo supprimée');
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      this.toastService.error("Erreur lors de la suppression de la photo");
     }
   }
 

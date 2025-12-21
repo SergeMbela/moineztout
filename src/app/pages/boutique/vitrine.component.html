@@ -1,0 +1,51 @@
+<div class="vitrine-container">
+  <header class="vitrine-header">
+    <h1>Notre Collection</h1>
+    <p>Découvrez nos parfums d'exception</p>
+  </header>
+
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div> Chargement de la collection...
+  </div>
+
+  <div *ngIf="!loading" class="products-grid">
+    <div *ngFor="let item of items" class="product-card">
+      <div class="product-image">
+        <!-- Image avec fallback si pas d'image définie -->
+        <img [src]="item.image_url || 'assets/placeholder-perfume.jpg'" (error)="onImageError($event)" [alt]="item.title">
+        
+        <span *ngIf="item.is_featured" class="badge-featured">Coup de ❤️</span>
+        
+        <!-- Badge de rupture de stock si lié à un produit avec stock 0 -->
+        <div *ngIf="item.products && item.products.current_stock <= 0" class="overlay-out-of-stock">
+          Rupture
+        </div>
+      </div>
+      
+      <div class="product-info">
+        <div class="product-meta">
+          <span class="brand">{{ item.brand }}</span>
+          <span class="category">{{ item.category }}</span>
+        </div>
+        
+        <h3 class="title">{{ item.title }}</h3>
+        
+        <div class="details">
+          <span class="volume" *ngIf="item.volume_ml">{{ item.volume_ml }}ml</span>
+          <span class="family" *ngIf="item.olfactory_family"> • {{ item.olfactory_family }}</span>
+        </div>
+
+        <div class="product-footer">
+          <span class="price">{{ item.price | currency:'EUR' }}</span>
+          <button class="btn-cart" (click)="addToCart(item)" [disabled]="item.products && item.products.current_stock <= 0">
+            Ajouter
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div *ngIf="!loading && items.length === 0" class="empty-state">
+    Aucun produit disponible pour le moment.
+  </div>
+</div>

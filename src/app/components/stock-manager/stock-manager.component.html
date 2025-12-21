@@ -59,6 +59,7 @@
             <th>SKU</th>
             <th>Nom</th>
             <th>Mon Prix</th>
+            <th>Photo</th>
             <th>Modifier</th>
             <th>Total</th>
      
@@ -69,6 +70,16 @@
             <td>{{ product.sku }}</td>
             <td>{{ product.name }}</td>
             <td>{{ $any(product).myprice | currency:'EUR' }}</td>
+            <td>
+              <div *ngIf="$any(product).image_path" style="position: relative; display: inline-block; margin-bottom: 5px;">
+                <img [src]="$any(product).image_path" alt="Produit" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                <button (click)="deletePhoto(product)" class="btn btn-danger btn-sm" style="position: absolute; top: -8px; right: -8px; padding: 0 5px; font-size: 12px; line-height: 1.2; border-radius: 50%; z-index: 10;" title="Supprimer la photo">×</button>
+              </div>
+              <div *ngIf="uploadingProductId === product.id" class="progress my-2" style="height: 10px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+              </div>
+              <input type="file" (change)="uploadPhoto($event, product)" accept="image/*" class="form-control form-control-sm" [disabled]="uploadingProductId === product.id">
+            </td>
             <td><button class="btn btn-sm btn-warning" (click)="openPriceModal(product)">Éditer</button></td>
             <td>{{ (product.current_stock * ($any(product).myprice || 0)) | currency:'EUR' }}</td>
           </tr>

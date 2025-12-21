@@ -13,6 +13,7 @@ export class NavbarComponent {
   // Liste des liens de navigation demandés
   navItems = [
     { label: 'Fournisseurs', path: '/fournisseurs' },
+    { label: 'Boutique', path: '/boutique' },
     { label: 'Approvisionnement', path: '/approvisionnement' },
     { label: 'Gestion de stock', path: '/stock' },
     { label: 'Prospects', path: '/prospects' },
