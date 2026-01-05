@@ -1,0 +1,78 @@
+<div class="container">
+  <div class="header-row">
+    <button class="btn-back" routerLink="/commandes-fournisseurs">← Retour Commandes</button>
+    <h2 *ngIf="commande">Commande #{{ commande.id_cmd_fourn }} - {{ commande.suppliers?.name }}</h2>
+  </div>
+
+  <div class="content-grid">
+    <!-- Liste des lignes -->
+    <div class="list-panel">
+      <h3>Lignes d'achat</h3>
+      <div *ngIf="loading" class="loading">Chargement...</div>
+      
+      <ul class="lignes-list" *ngIf="!loading">
+        <li *ngFor="let ligne of lignes" 
+            (click)="selectLigne(ligne)"
+            [class.active]="selectedLigne.id_ligne === ligne.id_ligne">
+          <div class="ligne-info">
+            <span class="ligne-name">{{ ligne.Parfums?.nom_parfum }}</span>
+            <span class="ligne-details">
+              Cmd: {{ ligne.quantite_commandee }} | Reçu: {{ ligne.quantite_recue }} | PU: {{ ligne.prix_achat_unitaire | currency:'EUR' }}
+            </span>
+            <span class="ligne-total">
+              Total: {{ (ligne.quantite_commandee * ligne.prix_achat_unitaire) | currency:'EUR' }}
+            </span>
+          </div>
+          <button class="delete-btn" (click)="deleteLigne(ligne.id_ligne); $event.stopPropagation()">
+            🗑️
+          </button>
+        </li>
+      </ul>
+      <div *ngIf="!loading && lignes.length === 0" class="empty-state">
+        Aucune ligne dans cette commande.
+      </div>
+    </div>
+
+    <!-- Formulaire d'édition/ajout -->
+    <div class="form-panel">
+      <h3>{{ isEditing ? 'Modifier la ligne' : 'Ajouter une ligne' }}</h3>
+      
+      <form (ngSubmit)="saveLigne()">
+        <div class="form-group">
+          <label for="parfum">Parfum *</label>
+          <select id="parfum" [(ngModel)]="selectedLigne.id_parfum" name="parfum" (change)="onParfumChange()" required>
+            <option [ngValue]="null">-- Sélectionner --</option>
+            <option *ngFor="let p of parfums" [ngValue]="p.id_parfum">{{ p.nom_parfum }}</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="qty_cmd">Qté Commandée *</label>
+            <input type="number" id="qty_cmd" [(ngModel)]="selectedLigne.quantite_commandee" name="qty_cmd" min="1" required>
+          </div>
+          <div class="form-group half">
+            <label for="qty_rec">Qté Reçue</label>
+            <input type="number" id="qty_rec" [(ngModel)]="selectedLigne.quantite_recue" name="qty_rec" min="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="prix">Prix Achat Unitaire (€) *</label>
+          <input type="number" id="prix" [(ngModel)]="selectedLigne.prix_achat_unitaire" name="prix" step="0.01" required>
+        </div>
+
+        <div class="form-info" *ngIf="selectedLigne.quantite_commandee && selectedLigne.prix_achat_unitaire">
+          <p><strong>Total Estimé:</strong> {{ (selectedLigne.quantite_commandee * selectedLigne.prix_achat_unitaire) | currency:'EUR' }}</p>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="isEditing">Annuler</button>
+          <button type="submit" class="btn-primary" [disabled]="!selectedLigne.id_parfum || selectedLigne.quantite_commandee < 1">
+            {{ isEditing ? 'Mettre à jour' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

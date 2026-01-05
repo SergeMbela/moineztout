@@ -8,8 +8,7 @@ import { ToastService } from '../../services/toast.service';
   selector: 'app-achat-fournisseurs',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
-  templateUrl: './achat-fournisseurs.component.html'
-  ,
+  templateUrl: './achat-fournisseurs.component.html',
   styleUrls: ['./achat-fournisseurs.component.css']
 })
 export class AchatFournisseursComponent implements OnInit {

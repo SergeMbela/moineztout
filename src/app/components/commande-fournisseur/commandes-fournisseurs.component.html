@@ -1,0 +1,82 @@
+<div class="container mx-auto p-4">
+  <h2 class="text-2xl font-bold mb-6">Gestion des Commandes Fournisseurs</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Liste des commandes -->
+    <div class="md:col-span-1 bg-white shadow rounded-lg p-4 h-fit">
+      <h3 class="text-lg font-semibold mb-4">Liste des commandes</h3>
+      <div *ngIf="loading" class="text-center text-gray-500 py-4">Chargement...</div>
+      
+      <ul class="space-y-2" *ngIf="!loading">
+        <li *ngFor="let cmd of commandes" 
+            (click)="selectCommande(cmd)"
+            class="flex justify-between items-center p-3 rounded cursor-pointer transition-colors border border-gray-100"
+            [class.bg-blue-50]="selectedCommande.id_cmd_fourn === cmd.id_cmd_fourn"
+            [class.border-blue-200]="selectedCommande.id_cmd_fourn === cmd.id_cmd_fourn"
+            [class.bg-gray-50]="selectedCommande.id_cmd_fourn !== cmd.id_cmd_fourn"
+            [class.hover:bg-gray-100]="selectedCommande.id_cmd_fourn !== cmd.id_cmd_fourn">
+          <div class="flex flex-col">
+            <span class="font-medium">#{{ cmd.id_cmd_fourn }} - {{ cmd.suppliers?.name || cmd.mo_fournisseurs?.nom_societe }}</span>
+            <span class="text-sm text-gray-500">
+              {{ cmd.statut }}
+            </span>
+            <span class="text-xs text-gray-400" *ngIf="cmd.date_creation">
+              {{ cmd.date_creation | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+          <button class="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50 transition-colors" (click)="deleteCommande(cmd.id_cmd_fourn); $event.stopPropagation()">
+            🗑️
+          </button>
+        </li>
+      </ul>
+      <div *ngIf="!loading && commandes.length === 0" class="text-center text-gray-500 py-4">
+        Aucune commande trouvée.
+      </div>
+    </div>
+
+    <!-- Formulaire d'édition/ajout -->
+    <div class="md:col-span-2 bg-white shadow rounded-lg p-6 h-fit">
+      <h3 class="text-xl font-semibold mb-6">{{ isEditing ? 'Modifier la commande' : 'Ajouter une nouvelle commande' }}</h3>
+      
+      <form (ngSubmit)="saveCommande()">
+        <div class="mb-4">
+          <label for="fournisseur" class="block text-sm font-medium text-gray-700 mb-1">Fournisseur *</label>
+          <select id="fournisseur" [(ngModel)]="selectedCommande.id_fournisseur" name="fournisseur" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+            <option [ngValue]="null">-- Sélectionner --</option>
+            <option *ngFor="let f of fournisseurs" [ngValue]="f.id_fournisseur">{{ f.nom_societe }}</option>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label for="statut" class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+          <select id="statut" [(ngModel)]="selectedCommande.statut" name="statut" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+            <option *ngFor="let s of statuts" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+
+        <div class="mb-4 p-3 bg-gray-50 rounded text-sm text-gray-600" *ngIf="isEditing">
+          <p><strong>ID Commande:</strong> {{ selectedCommande.id_cmd_fourn }}</p>
+          <p *ngIf="selectedCommande.date_creation">
+            <strong>Date Création:</strong> {{ selectedCommande.date_creation | date:'medium' }}
+          </p>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors" (click)="resetForm()" *ngIf="isEditing">Annuler</button>
+          <a *ngIf="isEditing && selectedCommande.id_cmd_fourn" 
+             [routerLink]="['/commandes-fournisseurs', selectedCommande.id_cmd_fourn, 'lignes']" 
+             class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 transition-colors no-underline">
+            Gérer les lignes
+          </a>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center" [disabled]="!selectedCommande.id_fournisseur || saving">
+            <svg *ngIf="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ isEditing ? 'Mettre à jour' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

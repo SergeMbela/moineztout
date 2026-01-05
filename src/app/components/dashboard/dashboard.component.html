@@ -1,0 +1,161 @@
+<div class="container mx-auto p-6">
+  <h1 class="text-3xl font-bold text-gray-800 mb-8">Tableau de Bord</h1>
+
+  <div *ngIf="loading" class="text-center py-10 text-gray-500">Chargement des données...</div>
+
+  <!-- Filtres par date -->
+  <div class="flex flex-wrap gap-4 mb-6 items-end bg-white p-4 rounded-xl shadow-sm border border-gray-200" *ngIf="!loading">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Date début</label>
+      <input type="date" [(ngModel)]="startDate" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Date fin</label>
+      <input type="date" [(ngModel)]="endDate" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+    </div>
+    <div class="flex gap-2">
+      <button (click)="applyFilter()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">Filtrer</button>
+      <button (click)="resetFilter()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">Réinitialiser</button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading">
+    <!-- Cartes de Statistiques -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <!-- Carte CA -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-gray-500 text-sm font-medium uppercase">Chiffre d'Affaires (Mois)</h3>
+          <span class="p-2 bg-green-100 text-green-600 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </span>
+        </div>
+        <div class="text-3xl font-bold text-gray-900">{{ stats?.ca | currency:'EUR':'symbol':'1.2-2' }}</div>
+        <p class="text-sm mt-2 flex items-center gap-2">
+          <span *ngIf="!startDate && !endDate" 
+                [class.text-green-600]="stats.ca_progression >= 0" 
+                [class.text-red-600]="stats.ca_progression < 0" 
+                class="font-medium flex items-center bg-gray-50 px-2 py-0.5 rounded">
+            {{ stats.ca_progression > 0 ? '+' : '' }}{{ stats.ca_progression | number:'1.0-1' }}%
+          </span>
+          <span class="text-gray-500">{{ startDate && endDate ? 'Période sélectionnée' : 'vs mois dernier' }}</span>
+        </p>
+      </div>
+
+      <!-- Carte Commandes -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-gray-500 text-sm font-medium uppercase">Commandes (Mois)</h3>
+          <span class="p-2 bg-blue-100 text-blue-600 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+          </span>
+        </div>
+        <div class="text-3xl font-bold text-gray-900">{{ stats?.nb_commandes }}</div>
+        <p class="text-sm mt-2 flex items-center gap-2">
+          <span *ngIf="!startDate && !endDate" 
+                [class.text-green-600]="stats.nb_commandes_progression >= 0" 
+                [class.text-red-600]="stats.nb_commandes_progression < 0" 
+                class="font-medium flex items-center bg-gray-50 px-2 py-0.5 rounded">
+            {{ stats.nb_commandes_progression > 0 ? '+' : '' }}{{ stats.nb_commandes_progression | number:'1.0-1' }}%
+          </span>
+          <span class="text-gray-500">{{ startDate && endDate ? 'Sur la période' : 'vs mois dernier' }}</span>
+        </p>
+      </div>
+
+      <!-- Carte Alertes Stock -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-gray-500 text-sm font-medium uppercase">Alertes Stock</h3>
+          <span class="p-2 bg-red-100 text-red-600 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </span>
+        </div>
+        <div class="text-3xl font-bold text-gray-900">{{ stats?.alerte_stock }}</div>
+        <p class="text-sm text-red-600 mt-2">Produits sous le seuil</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Graphique CA (Line) -->
+      <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Évolution du Chiffre d'Affaires</h3>
+        <div class="h-80">
+          <canvas baseChart
+            [data]="lineChartData"
+            [options]="lineChartOptions"
+            [type]="'line'">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Graphique Familles (Pie) -->
+      <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Ventes par Famille</h3>
+        <div class="h-80">
+          <canvas baseChart
+            [data]="pieChartData"
+            [options]="pieChartOptions"
+            [type]="'pie'">
+          </canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Tableau Dernières Ventes -->
+      <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-800">Dernières Ventes</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-gray-600">
+            <thead class="bg-gray-50 text-xs uppercase text-gray-500 font-semibold">
+              <tr>
+                <th class="px-6 py-3">Date</th>
+                <th class="px-6 py-3">Produit</th>
+                <th class="px-6 py-3 text-right">Quantité</th>
+                <th class="px-6 py-3 text-right">Montant</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr *ngFor="let vente of recentSales" class="hover:bg-gray-50">
+                <td class="px-6 py-4">{{ vente.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td class="px-6 py-4 font-medium text-gray-900">{{ vente.products?.name || 'Produit inconnu' }}</td>
+                <td class="px-6 py-4 text-right">{{ vente.quantity }}</td>
+                <td class="px-6 py-4 text-right font-medium text-gray-900">{{ vente.total_price | currency:'EUR':'symbol':'1.2-2' }}</td>
+              </tr>
+              <tr *ngIf="recentSales.length === 0">
+                <td colspan="4" class="px-6 py-8 text-center text-gray-500">Aucune vente récente.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top 5 Produits -->
+      <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-fit">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Top 5 Produits</h3>
+        <ul class="space-y-4">
+          <li *ngFor="let product of topProducts; let i = index" class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-indigo-50 text-indigo-600 font-bold text-sm">
+                {{ i + 1 }}
+              </span>
+              <span class="text-gray-700 font-medium">{{ product.name }}</span>
+            </div>
+            <span class="text-gray-900 font-semibold">{{ product.quantity }} ventes</span>
+          </li>
+          <li *ngIf="topProducts.length === 0" class="text-gray-500 text-center py-4">
+            Aucune donnée disponible.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

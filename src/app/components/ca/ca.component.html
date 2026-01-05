@@ -1,6 +1,21 @@
 <div class="container">
   <h2>Analyse du Chiffre d'Affaires</h2>
 
+  <div class="card filter-card">
+    <div class="filter-group">
+      <label>Année :</label>
+      <select [(ngModel)]="selectedYear" (change)="filterData()">
+        <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Mois :</label>
+      <select [(ngModel)]="selectedMonth" (change)="filterData()">
+        <option *ngFor="let m of months" [value]="m.value">{{ m.label }}</option>
+      </select>
+    </div>
+  </div>
+
   <div class="dashboard-cards">
     <div class="card metric-card">
       <h3>Chiffre d'Affaires Total</h3>
@@ -8,9 +23,16 @@
     </div>
   </div>
 
-  <div class="card chart-card">
-    <h3>Évolution du CA</h3>
-    <div class="chart-container"><canvas id="caChart"></canvas></div>
+  <div class="charts-row">
+    <div class="card chart-card">
+      <h3>Évolution du CA</h3>
+      <div class="chart-container"><canvas id="caChart"></canvas></div>
+    </div>
+
+    <div class="card chart-card">
+      <h3>Répartition par Produit</h3>
+      <div class="chart-container"><canvas id="caPieChart"></canvas></div>
+    </div>
   </div>
 
   <div class="card list-card">

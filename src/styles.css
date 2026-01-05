@@ -1,1 +1,77 @@
-/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Styles globaux pour les formulaires */
+  input[type='text'],
+  input[type='number'],
+  input[type='email'],
+  input[type='password'],
+  input[type='date'],
+  input[type='datetime-local'],
+  select,
+  textarea {
+    @apply w-full rounded-lg border border-gray-300 p-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all bg-white;
+  }
+
+  label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+
+  /* Styles globaux pour les tableaux */
+  table {
+    @apply min-w-full divide-y divide-gray-200 text-left text-sm text-gray-600;
+  }
+
+  thead {
+    @apply bg-gray-50;
+  }
+
+  thead th {
+    @apply px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider;
+  }
+
+  tbody {
+    @apply bg-white divide-y divide-gray-200;
+  }
+
+  tbody tr {
+    @apply hover:bg-gray-50 transition-colors;
+  }
+
+  tbody td {
+    @apply px-6 py-4 whitespace-nowrap;
+  }
+}
+
+@layer components {
+  /* Conteneur standard pour les tableaux (carte) */
+  .table-container {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden;
+  }
+  
+  /* Boutons standards */
+  .btn-primary {
+    @apply inline-flex justify-center items-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all;
+  }
+
+  .btn-secondary {
+    @apply inline-flex justify-center items-center px-4 py-2.5 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all;
+  }
+
+  /* Example: Custom Badge Component */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800;
+  }
+
+  /* Example: Using arbitrary values with @apply */
+  .custom-sidebar {
+    @apply w-[350px] h-[calc(100vh-4rem)] bg-white border-r border-gray-200;
+  }
+
+  /* Example: Using theme colors inside arbitrary values */
+  .glow-effect {
+    @apply drop-shadow-[0_0_10px_theme('colors.primary')];
+  }
+}

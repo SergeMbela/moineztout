@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { SupabaseService } from '../../services/supabase.service';
+import { RpcService } from '../../services/rpc.service';
 import { Fournisseur } from '../../models/fournisseur.model';
 import { ToastService } from '../../services/toast.service';
 
@@ -19,18 +20,18 @@ export class FournisseursComponent implements OnInit {
 
   constructor(
     private supabaseService: SupabaseService,
+    private rpcService: RpcService,
     private fb: FormBuilder,
     private toastService: ToastService
   ) {
     this.fournisseurs$ = this.supabaseService.fournisseurs$;
     this.fournisseurForm = this.fb.group({
-      name: ['', Validators.required],
-      contact_email: ['', [Validators.email]],
-      phone_number: [''],
-      tva: [''],
+      nom_societe: ['', Validators.required],
+      nom_contact: [''],
+      email: ['', [Validators.email]],
+      telephone: [''],
       adresse: [''],
-      ville: [''],
-      code_postal: ['']
+      delai_livraison_moyen_jours: [7]
     });
   }
 
@@ -48,9 +49,19 @@ export class FournisseursComponent implements OnInit {
           return acc;
         }, {});
 
-        await this.supabaseService.addFournisseur(cleanData);
-        this.toastService.success('Fournisseur ajouté avec succès !');
-        this.fournisseurForm.reset();
+        await this.rpcService.upsertFournisseur(
+          null, // ID null = Création (INSERT)
+          cleanData.nom_societe,
+          cleanData.nom_contact,
+          cleanData.email,
+          cleanData.telephone,
+          cleanData.adresse,
+          cleanData.delai_livraison_moyen_jours
+        );
+        
+        this.toastService.success('Fournisseur enregistré avec succès !');
+        this.fournisseurForm.reset({ delai_livraison_moyen_jours: 7 });
+        this.supabaseService.loadFournisseurs(); // Recharger la liste
       } catch (error) {
         console.warn(error);
         console.error('Erreur lors de l\'ajout:', error);
@@ -58,7 +69,7 @@ export class FournisseursComponent implements OnInit {
       }
     } else {
       console.warn('Formulaire invalide', this.fournisseurForm.errors);
-      this.toastService.error('Veuillez remplir les champs obligatoires (Nom).');
+      this.toastService.error('Veuillez remplir les champs obligatoires (Nom de la société).');
     }
   }
 

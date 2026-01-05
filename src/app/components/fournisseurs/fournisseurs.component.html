@@ -1,81 +1,71 @@
-<div class="container">
-  <h2>Gestion des Fournisseurs</h2>
+<div class="container mx-auto p-4">
+  <h2 class="text-2xl font-bold mb-6">Gestion des Fournisseurs</h2>
 
-  <!-- Formulaire d'ajout -->
-  <div class="card form-card">
-    <h3>Nouveau Fournisseur</h3>
-    <form [formGroup]="fournisseurForm" (ngSubmit)="onSubmit()">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="name">Nom *</label>
-          <input type="text" id="name" formControlName="name" class="form-control" placeholder="Nom de l'entreprise">
-        </div>
-        <div class="form-group">
-          <label for="tva">TVA</label>
-          <input type="text" id="tva" formControlName="tva" class="form-control" placeholder="123 456 789 00012">
-        </div>
-      </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Liste des fournisseurs -->
+    <div class="md:col-span-1 bg-white shadow rounded-lg p-4 h-fit">
+      <h3 class="text-lg font-semibold mb-4">Liste des Fournisseurs</h3>
+      
+      <ul class="space-y-2">
+        <li *ngFor="let f of fournisseurs$ | async" 
+            class="flex justify-between items-center p-3 rounded cursor-pointer transition-colors border border-gray-100 hover:bg-gray-100">
+          <div class="flex flex-col">
+            <span class="font-medium">{{ f.nom_societe }}</span>
+            <span class="text-sm text-gray-500" *ngIf="f.nom_contact">{{ f.nom_contact }}</span>
+          </div>
+          <button class="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50 transition-colors" (click)="onDelete(f.id_fournisseur); $event.stopPropagation()">
+            🗑️
+          </button>
+        </li>
+        <li *ngIf="(fournisseurs$ | async)?.length === 0" class="text-center text-gray-500 py-4">
+          Aucun fournisseur enregistré.
+        </li>
+      </ul>
+    </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="contact_email">Email</label>
-          <input type="email" id="contact_email" formControlName="contact_email" class="form-control" placeholder="contact@fournisseur.com">
+    <!-- Formulaire d'ajout -->
+    <div class="md:col-span-2 bg-white shadow rounded-lg p-6 h-fit">
+      <h3 class="text-xl font-semibold mb-6">Nouveau Fournisseur</h3>
+      
+      <form [formGroup]="fournisseurForm" (ngSubmit)="onSubmit()">
+        <div class="mb-4">
+          <label for="nom_societe" class="block text-sm font-medium text-gray-700 mb-1">Nom de la société *</label>
+          <input type="text" id="nom_societe" formControlName="nom_societe" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="Nom de l'entreprise">
         </div>
-        <div class="form-group">
-          <label for="phone_number">Téléphone</label>
-          <input type="text" id="phone_number" formControlName="phone_number" class="form-control" placeholder="01 23 45 67 89">
-        </div>
-      </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="adresse">Adresse</label>
-          <input type="text" id="adresse" formControlName="adresse" class="form-control" placeholder="Rue...">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="nom_contact" class="block text-sm font-medium text-gray-700 mb-1">Nom du contact</label>
+            <input type="text" id="nom_contact" formControlName="nom_contact" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="M. Dupont">
+          </div>
+          <div>
+            <label for="delai" class="block text-sm font-medium text-gray-700 mb-1">Délai livraison (jours)</label>
+            <input type="number" id="delai" formControlName="delai_livraison_moyen_jours" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="7">
+          </div>
         </div>
-        <div class="form-group">
-          <label for="ville">Ville</label>
-          <input type="text" id="ville" formControlName="ville" class="form-control" placeholder="Paris">
-        </div>
-        <div class="form-group">
-          <label for="code_postal">Code Postal</label>
-          <input type="text" id="code_postal" formControlName="code_postal" class="form-control" placeholder="75000">
-        </div>
-      </div>
 
-      <button type="submit" [disabled]="!fournisseurForm.valid" class="btn-submit">Ajouter le fournisseur</button>
-    </form>
-  </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input type="email" id="email" formControlName="email" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="contact@fournisseur.com">
+          </div>
+          <div>
+            <label for="telephone" class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+            <input type="text" id="telephone" formControlName="telephone" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="01 23 45 67 89">
+          </div>
+        </div>
 
-  <!-- Liste des fournisseurs -->
-  <div class="card list-card">
-    <h3>Liste des Fournisseurs</h3>
-    <table class="stock-table">
-      <thead>
-        <tr>
-          <th>Nom</th>
-          <th>Contact</th>
-          <th>Ville</th>
-          <th>TVA</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let f of fournisseurs$ | async">
-          <td><strong>{{ f.name }}</strong></td>
-          <td>
-            <div *ngIf="f.contact_email">{{ f.contact_email }}</div>
-            <div *ngIf="f.phone_number" class="text-sm">{{ f.phone_number }}</div>
-          </td>
-          <td>{{ f.ville }} <span *ngIf="f.code_postal">({{ f.code_postal }})</span></td>
-          <td>{{ f.tva }}</td>
-          <td>
-            <button (click)="onDelete(f.id)" class="btn-delete">Supprimer</button>
-          </td>
-        </tr>
-        <tr *ngIf="(fournisseurs$ | async)?.length === 0">
-          <td colspan="5" class="text-center">Aucun fournisseur enregistré.</td>
-        </tr>
-      </tbody>
-    </table>
+        <div class="mb-6">
+          <label for="adresse" class="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
+          <textarea id="adresse" formControlName="adresse" rows="3" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="Adresse complète..."></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button type="submit" [disabled]="!fournisseurForm.valid" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            Ajouter le fournisseur
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>

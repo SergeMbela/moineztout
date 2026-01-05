@@ -1,0 +1,159 @@
+<div class="container mx-auto p-4">
+  <h2 class="text-2xl font-bold mb-6">Gestion des Parfums</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Liste des parfums -->
+    <div class="md:col-span-1 bg-white shadow rounded-lg p-4 h-fit">
+      <h3 class="text-lg font-semibold mb-4">Liste des parfums</h3>
+      <div *ngIf="loading" class="text-center text-gray-500 py-4">Chargement...</div>
+      
+      <ul class="space-y-2" *ngIf="!loading">
+        <li *ngFor="let parfum of parfums" 
+            (click)="selectParfum(parfum)"
+            class="flex justify-between items-center p-3 rounded cursor-pointer transition-colors border border-gray-100"
+            [class.bg-blue-50]="selectedParfum.id_parfum === parfum.id_parfum"
+            [class.border-blue-200]="selectedParfum.id_parfum === parfum.id_parfum"
+            [class.bg-gray-50]="selectedParfum.id_parfum !== parfum.id_parfum"
+            [class.hover:bg-gray-100]="selectedParfum.id_parfum !== parfum.id_parfum">
+          <div class="flex items-center gap-3">
+            <div class="relative group">
+              <div class="w-12 h-12 flex-shrink-0 bg-white rounded-lg border border-gray-200 overflow-hidden flex items-center justify-center cursor-zoom-in">
+                <img *ngIf="parfum.url_image_principale" [src]="parfum.url_image_principale" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" alt="">
+                <span *ngIf="!parfum.url_image_principale" class="text-xl">🧴</span>
+              </div>
+              <div *ngIf="parfum.url_image_principale" class="absolute left-14 top-1/2 -translate-y-1/2 w-48 h-48 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden hidden group-hover:block z-50 pointer-events-none">
+                <img [src]="parfum.url_image_principale" class="w-full h-full object-cover">
+              </div>
+            </div>
+            <div class="flex flex-col">
+              <span class="font-medium">{{ parfum.nom_parfum }}</span>
+              <span class="text-sm text-gray-500">
+                {{ parfum.marques?.nom_marque }} • {{ parfum.genre }} • {{ parfum.volume_ml }}ml
+              </span>
+              <span class="text-xs font-semibold mt-1" [class.text-red-600]="parfum.stock_actuel <= parfum.seuil_alerte" [class.text-green-600]="parfum.stock_actuel > parfum.seuil_alerte">
+                Stock: {{ parfum.stock_actuel }}
+              </span>
+            </div>
+          </div>
+          <button class="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50 transition-colors" (click)="deleteParfum(parfum.id_parfum); $event.stopPropagation()">
+            🗑️
+          </button>
+        </li>
+      </ul>
+      <div *ngIf="!loading && parfums.length === 0" class="text-center text-gray-500 py-4">
+        Aucun parfum trouvé.
+      </div>
+    </div>
+
+    <!-- Formulaire d'édition/ajout -->
+    <div class="md:col-span-2 bg-white shadow rounded-lg p-6 h-fit">
+      <h3 class="text-xl font-semibold mb-6">{{ isEditing ? 'Modifier le parfum' : 'Ajouter un nouveau parfum' }}</h3>
+      
+      <form (ngSubmit)="saveParfum()">
+        <div class="mb-4">
+          <label for="nom" class="block text-sm font-medium text-gray-700 mb-1">Nom du parfum *</label>
+          <input type="text" id="nom" [(ngModel)]="selectedParfum.nom_parfum" name="nom" required placeholder="Ex: Sauvage" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="marque" class="block text-sm font-medium text-gray-700 mb-1">Marque *</label>
+            <select id="marque" [(ngModel)]="selectedParfum.id_marque" name="marque" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+              <option [ngValue]="null">-- Sélectionner --</option>
+              <option *ngFor="let m of marques" [ngValue]="m.id_marque">{{ m.nom_marque }}</option>
+            </select>
+          </div>
+          <div>
+            <label for="famille" class="block text-sm font-medium text-gray-700 mb-1">Famille Olfactive</label>
+            <select id="famille" [(ngModel)]="selectedParfum.id_famille" name="famille" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+              <option [ngValue]="null">-- Aucune --</option>
+              <option *ngFor="let f of familles" [ngValue]="f.id_famille">{{ f.nom_famille }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="genre" class="block text-sm font-medium text-gray-700 mb-1">Genre</label>
+            <select id="genre" [(ngModel)]="selectedParfum.genre" name="genre" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+              <option *ngFor="let g of genres" [value]="g">{{ g }}</option>
+            </select>
+          </div>
+          <div>
+            <label for="volume" class="block text-sm font-medium text-gray-700 mb-1">Volume (ml)</label>
+            <input type="number" id="volume" [(ngModel)]="selectedParfum.volume_ml" name="volume" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="prix_achat" class="block text-sm font-medium text-gray-700 mb-1">Prix Achat (€)</label>
+            <input type="number" id="prix_achat" [(ngModel)]="selectedParfum.prix_achat" name="prix_achat" step="0.01" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+          </div>
+          <div>
+            <label for="prix_vente" class="block text-sm font-medium text-gray-700 mb-1">Prix Vente (€)</label>
+            <input type="number" id="prix_vente" [(ngModel)]="selectedParfum.prix_vente" name="prix_vente" step="0.01" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="stock" class="block text-sm font-medium text-gray-700 mb-1">Stock Actuel</label>
+            <input type="number" id="stock" [(ngModel)]="selectedParfum.stock_actuel" name="stock" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+          </div>
+          <div>
+            <label for="seuil" class="block text-sm font-medium text-gray-700 mb-1">Seuil Alerte</label>
+            <input type="number" id="seuil" [(ngModel)]="selectedParfum.seuil_alerte" name="seuil" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <label for="fournisseur" class="block text-sm font-medium text-gray-700 mb-1">Fournisseur Préféré</label>
+          <select id="fournisseur" [(ngModel)]="selectedParfum.id_fournisseur_prefere" name="fournisseur" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+            <option [ngValue]="null">-- Aucun --</option>
+            <option *ngFor="let fourn of fournisseurs" [ngValue]="fourn.id_fournisseur">{{ fourn.nom_societe }}</option>
+          </select>
+        </div>
+
+        <!-- Images -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Image Principale</label>
+            <div class="flex items-center gap-3">
+              <div *ngIf="selectedParfum.url_image_principale" class="relative w-16 h-16 border rounded overflow-hidden flex-shrink-0">
+                <img [src]="selectedParfum.url_image_principale" class="w-full h-full object-cover">
+              </div>
+              <input type="file" (change)="onFileSelected($event, 'principale')" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Image Secondaire</label>
+            <div class="flex items-center gap-3">
+              <div *ngIf="selectedParfum.url_image_secondaire" class="relative w-16 h-16 border rounded overflow-hidden flex-shrink-0">
+                <img [src]="selectedParfum.url_image_secondaire" class="w-full h-full object-cover">
+              </div>
+              <input type="file" (change)="onFileSelected($event, 'secondaire')" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all">
+            </div>
+          </div>
+        </div>
+
+        <!-- Youtube -->
+        <div class="mb-6">
+          <label for="youtube" class="block text-sm font-medium text-gray-700 mb-1">URL Vidéo YouTube</label>
+          <input type="text" id="youtube" [(ngModel)]="selectedParfum.url_video_youtube" name="youtube" placeholder="https://youtube.com/watch?v=..." class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors" (click)="resetForm()" *ngIf="isEditing">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center" [disabled]="!selectedParfum.nom_parfum || !selectedParfum.id_marque || saving || uploading">
+            <svg *ngIf="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ isEditing ? 'Mettre à jour' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -57,11 +57,44 @@ h2, h3 {
   font-weight: 600;
 }
 
-.chart-card {
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
   margin-bottom: 2rem;
+}
+
+.chart-card {
+  margin-bottom: 0;
 }
 
 .chart-container {
   position: relative;
   height: 300px;
+}
+
+@media (max-width: 768px) {
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.filter-card {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 2rem;
+  background: #ecf0f1;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+select {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #bdc3c7;
 }

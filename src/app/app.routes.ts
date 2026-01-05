@@ -1,23 +1,29 @@
 import { Routes } from '@angular/router';
-import { StockManagerComponent } from './components/stock-manager/stock-manager.component';
+import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { MarquesComponent } from './components/marques/marques.component';
+import { FamillesOlfactivesComponent } from './components/famille-olfa/familles-olfactives.component';
+import { ParfumsComponent } from './components/parfums/parfums.component';
 import { FournisseursComponent } from './components/fournisseurs/fournisseurs.component';
-import { ProspectsComponent } from './components/prospects/prospects.component';
-import { CommissionsComponent } from './components/commissions/commissions.component';
-import { AchatFournisseursComponent } from './components/achat-fournisseurs/achat-fournisseurs.component';
-import { VentesComponent } from './components/ventes/ventes.component';
-import { CaComponent } from './components/ca/ca.component';
-import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
-import { BoutiqueComponent } from './pages/boutique/boutique.component';
+import { ClientsComponent } from './components/clients/clients.component';
+import { ModesLivraisonComponent } from './components/mode-livraison/modes-livraison.component';
+import { CommandesClientsComponent } from './components/commande-clients/commandes-clients.component';
+import { LignesVenteComponent } from './components/commande-clients/lignes-vente.component';
+import { CommandesFournisseursComponent } from './components/commande-fournisseur/commandes-fournisseurs.component';
+import { LignesAchatComponent } from './components/ligne-achat/lignes-achat.component';
+import { MouvementsStockComponent } from './components/stock-mouvement/mouvements-stock.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'stock', pathMatch: 'full' },
-  { path: 'stock', component: StockManagerComponent },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: 'dashboard', component: DashboardComponent },
+  { path: 'marques', component: MarquesComponent },
+  { path: 'familles-olfactives', component: FamillesOlfactivesComponent },
+  { path: 'parfums', component: ParfumsComponent },
   { path: 'fournisseurs', component: FournisseursComponent },
-  { path: 'approvisionnement', component: AchatFournisseursComponent },
-  { path: 'prospects', component: ProspectsComponent },
-  { path: 'commissions', component: CommissionsComponent },
-  { path: 'ventes', component: VentesComponent },
-  { path: 'boutique', component: BoutiqueComponent },
-  { path: 'ca', component: CaComponent },
-  { path: '**', component: PageNotFoundComponent }
+  { path: 'clients', component: ClientsComponent },
+  { path: 'modes-livraison', component: ModesLivraisonComponent },
+  { path: 'commandes-clients', component: CommandesClientsComponent },
+  { path: 'commandes-clients/:id/lignes', component: LignesVenteComponent },
+  { path: 'commandes-fournisseurs', component: CommandesFournisseursComponent },
+  { path: 'commandes-fournisseurs/:id/lignes', component: LignesAchatComponent },
+  { path: 'mouvements-stock', component: MouvementsStockComponent },
 ];

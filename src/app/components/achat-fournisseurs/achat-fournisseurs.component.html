@@ -11,8 +11,8 @@
           <label for="supplier">Fournisseur</label>
           <select id="supplier" formControlName="supplier_id" class="form-control">
             <option value="" disabled>Sélectionner un fournisseur</option>
-            <option *ngFor="let fournisseur of fournisseurs$ | async" [value]="fournisseur.id">
-              {{ fournisseur.name }}
+            <option *ngFor="let fournisseur of fournisseurs$ | async" [value]="fournisseur.id_fournisseur">
+              {{ fournisseur.nom_societe }}
             </option>
           </select>
         </div>
@@ -50,7 +50,7 @@
         <label class="me-2">Filtrer :</label>
         <select class="form-control w-auto" [(ngModel)]="filterSupplierId" (change)="applyFilter()">
           <option value="">Tous les fournisseurs</option>
-          <option *ngFor="let f of fournisseurs$ | async" [value]="f.id">{{ f.name }}</option>
+          <option *ngFor="let f of fournisseurs$ | async" [value]="f.id_fournisseur">{{ f.nom_societe }}</option>
         </select>
       </div>
     </div>
@@ -69,7 +69,7 @@
       <tbody>
         <tr *ngFor="let p of paginatedPurchases">
           <td>{{ p.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
-          <td>{{ p.suppliers?.name || '-' }}</td>
+          <td>{{ p.mo_fournisseurs?.nom_societe || '-' }}</td>
           <td>
             <span class="fw-bold">{{ p.products?.name || 'Produit inconnu' }}</span>
             <br><small class="text-muted">{{ p.products?.sku }}</small>

@@ -1,0 +1,70 @@
+<div class="container mx-auto p-4">
+  <h2 class="text-2xl font-bold mb-6">Gestion des Modes de Livraison</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Liste des modes -->
+    <div class="md:col-span-1 bg-white shadow rounded-lg p-4 h-fit">
+      <h3 class="text-lg font-semibold mb-4">Liste des modes</h3>
+      <div *ngIf="loading" class="text-center text-gray-500 py-4">Chargement...</div>
+      
+      <ul class="space-y-2" *ngIf="!loading">
+        <li *ngFor="let mode of modes" 
+            (click)="selectMode(mode)"
+            class="flex justify-between items-center p-3 rounded cursor-pointer transition-colors border border-gray-100"
+            [class.bg-blue-50]="selectedMode.id_mode === mode.id_mode"
+            [class.border-blue-200]="selectedMode.id_mode === mode.id_mode"
+            [class.bg-gray-50]="selectedMode.id_mode !== mode.id_mode"
+            [class.hover:bg-gray-100]="selectedMode.id_mode !== mode.id_mode">
+          <div class="flex flex-col">
+            <span class="font-medium">{{ mode.nom_mode }}</span>
+            <span class="text-sm text-gray-500">
+              {{ mode.transporter }} • {{ mode.delai_estime_jours }}j • {{ mode.cout_standard | currency:'EUR' }}
+            </span>
+          </div>
+          <button class="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50 transition-colors" (click)="deleteMode(mode.id_mode); $event.stopPropagation()">
+            🗑️
+          </button>
+        </li>
+      </ul>
+      <div *ngIf="!loading && modes.length === 0" class="text-center text-gray-500 py-4">
+        Aucun mode de livraison trouvé.
+      </div>
+    </div>
+
+    <!-- Formulaire d'édition/ajout -->
+    <div class="md:col-span-2 bg-white shadow rounded-lg p-6 h-fit">
+      <h3 class="text-xl font-semibold mb-6">{{ isEditing ? 'Modifier le mode' : 'Ajouter un nouveau mode' }}</h3>
+      
+      <form (ngSubmit)="saveMode()">
+        <div class="mb-4">
+          <label for="nom" class="block text-sm font-medium text-gray-700 mb-1">Nom du mode *</label>
+          <input type="text" id="nom" [(ngModel)]="selectedMode.nom_mode" name="nom" required placeholder="Ex: Standard Domicile" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+        </div>
+
+        <div class="mb-4">
+          <label for="transporter" class="block text-sm font-medium text-gray-700 mb-1">Transporteur</label>
+          <input type="text" id="transporter" [(ngModel)]="selectedMode.transporter" name="transporter" placeholder="Ex: Colissimo" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label for="delai" class="block text-sm font-medium text-gray-700 mb-1">Délai estimé (jours)</label>
+            <input type="number" id="delai" [(ngModel)]="selectedMode.delai_estime_jours" name="delai" min="0" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+          </div>
+
+          <div>
+            <label for="cout" class="block text-sm font-medium text-gray-700 mb-1">Coût Standard (€)</label>
+            <input type="number" id="cout" [(ngModel)]="selectedMode.cout_standard" name="cout" min="0" step="0.01" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors" (click)="resetForm()" *ngIf="isEditing">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" [disabled]="!selectedMode.nom_mode">
+            {{ isEditing ? 'Mettre à jour' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

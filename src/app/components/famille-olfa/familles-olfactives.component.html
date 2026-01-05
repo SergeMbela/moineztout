@@ -1,0 +1,56 @@
+<div class="container mx-auto p-4">
+  <h2 class="text-2xl font-bold mb-6">Gestion des Familles Olfactives</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Liste des familles -->
+    <div class="md:col-span-1 bg-white shadow rounded-lg p-4 h-fit">
+      <h3 class="text-lg font-semibold mb-4">Liste des familles</h3>
+      <div *ngIf="loading" class="text-center text-gray-500 py-4">Chargement...</div>
+      
+      <ul class="space-y-2" *ngIf="!loading">
+        <li *ngFor="let famille of familles" 
+            (click)="selectFamille(famille)"
+            class="flex justify-between items-center p-3 rounded cursor-pointer transition-colors border border-gray-100"
+            [class.bg-blue-50]="selectedFamille.id_famille === famille.id_famille"
+            [class.border-blue-200]="selectedFamille.id_famille === famille.id_famille"
+            [class.bg-gray-50]="selectedFamille.id_famille !== famille.id_famille"
+            [class.hover:bg-gray-100]="selectedFamille.id_famille !== famille.id_famille">
+          <div class="flex flex-col">
+            <span class="font-medium">{{ famille.nom_famille }}</span>
+            <span class="text-sm text-gray-500" *ngIf="famille.description">{{ famille.description }}</span>
+          </div>
+          <button class="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50 transition-colors" (click)="deleteFamille(famille.id_famille); $event.stopPropagation()">
+            🗑️
+          </button>
+        </li>
+      </ul>
+      <div *ngIf="!loading && familles.length === 0" class="text-center text-gray-500 py-4">
+        Aucune famille olfactive trouvée.
+      </div>
+    </div>
+
+    <!-- Formulaire d'édition/ajout -->
+    <div class="md:col-span-2 bg-white shadow rounded-lg p-6 h-fit">
+      <h3 class="text-xl font-semibold mb-6">{{ isEditing ? 'Modifier la famille' : 'Ajouter une nouvelle famille' }}</h3>
+      
+      <form (ngSubmit)="saveFamille()">
+        <div class="mb-4">
+          <label for="nom" class="block text-sm font-medium text-gray-700 mb-1">Nom de la famille *</label>
+          <input type="text" id="nom" [(ngModel)]="selectedFamille.nom_famille" name="nom" required placeholder="Ex: Boisé" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+        </div>
+
+        <div class="mb-6">
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea id="description" [(ngModel)]="selectedFamille.description" name="description" rows="4" placeholder="Description de la famille olfactive..." class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors" (click)="resetForm()" *ngIf="isEditing">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" [disabled]="!selectedFamille.nom_famille">
+            {{ isEditing ? 'Mettre à jour' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

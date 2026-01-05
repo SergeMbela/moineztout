@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../services/supabase.service';
 import { Chart } from 'chart.js/auto';
 
 @Component({
   selector: 'app-ca',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './ca.component.html',
   styleUrls: ['./ca.component.css']
 })
@@ -15,8 +16,35 @@ export class CaComponent implements OnInit {
   salesByProduct: any[] = [];
   loading = true;
   chart: any;
+  pieChart: any;
 
-  constructor(private supabaseService: SupabaseService) {}
+  // Filtres
+  allSales: any[] = [];
+  selectedMonth: string = '';
+  selectedYear: number = new Date().getFullYear();
+  years: number[] = [];
+  months = [
+    { value: '', label: 'Tous les mois' },
+    { value: '0', label: 'Janvier' },
+    { value: '1', label: 'Février' },
+    { value: '2', label: 'Mars' },
+    { value: '3', label: 'Avril' },
+    { value: '4', label: 'Mai' },
+    { value: '5', label: 'Juin' },
+    { value: '6', label: 'Juillet' },
+    { value: '7', label: 'Août' },
+    { value: '8', label: 'Septembre' },
+    { value: '9', label: 'Octobre' },
+    { value: '10', label: 'Novembre' },
+    { value: '11', label: 'Décembre' }
+  ];
+
+  constructor(private supabaseService: SupabaseService) {
+    const currentYear = new Date().getFullYear();
+    for (let i = 0; i < 5; i++) {
+      this.years.push(currentYear - i);
+    }
+  }
 
   ngOnInit() {
     this.loadData();
@@ -25,13 +53,29 @@ export class CaComponent implements OnInit {
   async loadData() {
     try {
       const sales = await this.supabaseService.getVentesHistory();
-      this.calculateMetrics(sales || []);
-      this.renderChart(sales || []);
+      this.allSales = sales || [];
+      this.filterData();
     } catch (error) {
       console.error('Erreur chargement CA', error);
     } finally {
       this.loading = false;
     }
+  }
+
+  filterData() {
+    let filtered = this.allSales;
+
+    if (this.selectedYear) {
+      filtered = filtered.filter(s => new Date(s.created_at).getFullYear() == this.selectedYear);
+    }
+
+    if (this.selectedMonth !== '') {
+      filtered = filtered.filter(s => new Date(s.created_at).getMonth() == Number(this.selectedMonth));
+    }
+
+    this.calculateMetrics(filtered);
+    this.renderChart(filtered);
+    this.renderPieChart();
   }
 
   calculateMetrics(sales: any[]) {
@@ -93,6 +137,35 @@ export class CaComponent implements OnInit {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { legend: { position: 'top' } }
+      }
+    });
+  }
+
+
+
+  renderPieChart() {
+    if (this.pieChart) this.pieChart.destroy();
+
+    const labels = this.salesByProduct.map(item => item.name);
+    const data = this.salesByProduct.map(item => item.total);
+
+    this.pieChart = new Chart('caPieChart', {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: [
+            '#3498db', '#e74c3c', '#2ecc71', '#f1c40f', '#9b59b6',
+            '#1abc9c', '#e67e22', '#34495e', '#95a5a6', '#16a085'
+          ],
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'right' } }
       }
     });
   }

@@ -1,0 +1,56 @@
+<div class="container mx-auto p-4">
+  <h2 class="text-2xl font-bold mb-6">Gestion des Marques</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Liste des marques -->
+    <div class="md:col-span-1 bg-white shadow rounded-lg p-4 h-fit">
+      <h3 class="text-lg font-semibold mb-4">Liste des marques</h3>
+      <div *ngIf="loading" class="text-center text-gray-500 py-4">Chargement...</div>
+      
+      <ul class="space-y-2" *ngIf="!loading">
+        <li *ngFor="let marque of marques" 
+            (click)="selectMarque(marque)"
+            class="flex justify-between items-center p-3 rounded cursor-pointer transition-colors border border-gray-100"
+            [class.bg-blue-50]="selectedMarque.id_marque === marque.id_marque"
+            [class.border-blue-200]="selectedMarque.id_marque === marque.id_marque"
+            [class.bg-gray-50]="selectedMarque.id_marque !== marque.id_marque"
+            [class.hover:bg-gray-100]="selectedMarque.id_marque !== marque.id_marque">
+          <div class="flex flex-col">
+            <span class="font-medium">{{ marque.nom_marque }}</span>
+            <span class="text-sm text-gray-500" *ngIf="marque.pays_origine">({{ marque.pays_origine }})</span>
+          </div>
+          <button class="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50 transition-colors" (click)="deleteMarque(marque.id_marque); $event.stopPropagation()">
+            🗑️
+          </button>
+        </li>
+      </ul>
+      <div *ngIf="!loading && marques.length === 0" class="text-center text-gray-500 py-4">
+        Aucune marque trouvée.
+      </div>
+    </div>
+
+    <!-- Formulaire d'édition/ajout -->
+    <div class="md:col-span-2 bg-white shadow rounded-lg p-6 h-fit">
+      <h3 class="text-xl font-semibold mb-6">{{ isEditing ? 'Modifier la marque' : 'Ajouter une nouvelle marque' }}</h3>
+      
+      <form (ngSubmit)="saveMarque()">
+        <div class="mb-4">
+          <label for="nom" class="block text-sm font-medium text-gray-700 mb-1">Nom de la marque *</label>
+          <input type="text" id="nom" [(ngModel)]="selectedMarque.nom_marque" name="nom" required placeholder="Ex: Dior" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+        </div>
+
+        <div class="mb-6">
+          <label for="pays" class="block text-sm font-medium text-gray-700 mb-1">Pays d'origine</label>
+          <input type="text" id="pays" [(ngModel)]="selectedMarque.pays_origine" name="pays" placeholder="Ex: France" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors" (click)="resetForm()" *ngIf="isEditing">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" [disabled]="!selectedMarque.nom_marque">
+            {{ isEditing ? 'Mettre à jour' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

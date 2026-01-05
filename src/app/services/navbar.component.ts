@@ -12,13 +12,13 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 export class NavbarComponent {
   // Liste des liens de navigation demandés
   navItems = [
-    { label: 'Fournisseurs', path: '/fournisseurs' },
-    { label: 'Boutique', path: '/boutique' },
-    { label: 'Approvisionnement', path: '/approvisionnement' },
-    { label: 'Gestion de stock', path: '/stock' },
-    { label: 'Prospects', path: '/prospects' },
-    { label: 'Commissions', path: '/commissions' },
-    { label: 'Ventes', path: '/ventes' },
-    { label: 'CA', path: '/ca' }
+    { label: 'Marques', path: '/marques' },
+    { label: 'Parfums', path: '/parfums' },
+    { label: 'Familles Olfactives', path: '/familles-olfactives' },
+    { label: 'Modes de Livraison', path: '/modes-livraison' },
+    { label: 'Clients', path: '/clients' },
+    { label: 'Commandes Clients', path: '/commandes-clients' },
+    { label: 'Commandes Fournisseurs', path: '/commandes-fournisseurs' },
+    { label: 'Mouvements Stock', path: '/mouvements-stock' }
   ];
 }

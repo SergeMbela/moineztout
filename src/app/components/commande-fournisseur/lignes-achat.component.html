@@ -1,0 +1,107 @@
+<div class="container mx-auto p-4">
+  <!-- En-tête avec bouton retour et infos commande -->
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-4">
+      <a routerLink="/commandes-fournisseurs" class="text-gray-500 hover:text-gray-700 flex items-center gap-1 transition-colors">
+        <span>←</span> Retour
+      </a>
+      <h2 class="text-2xl font-bold">Commande Fournisseur #{{ idCmd }}</h2>
+    </div>
+    <div class="text-right" *ngIf="commande">
+      <div class="font-medium text-lg">{{ commande.mo_fournisseurs?.nom_societe }}</div>
+      <div class="text-sm text-gray-500">{{ commande.date_creation | date:'dd/MM/yyyy' }} - {{ commande.statut }}</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Liste des lignes (Tableau) -->
+    <div class="md:col-span-2 bg-white shadow rounded-lg p-4 h-fit">
+      <h3 class="text-lg font-semibold mb-4">Produits commandés</h3>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Qté Cmd</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Qté Reçue</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">P.A. Unit.</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let ligne of lignes" class="hover:bg-gray-50 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="font-medium text-gray-900">{{ ligne.parfums?.nom_parfum }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">{{ ligne.quantite_commandee }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-right" [class.text-green-600]="ligne.quantite_recue >= ligne.quantite_commandee" [class.text-yellow-600]="ligne.quantite_recue > 0 && ligne.quantite_recue < ligne.quantite_commandee">
+                {{ ligne.quantite_recue }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">{{ ligne.prix_achat_unitaire | currency:'EUR' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-right font-medium">{{ (ligne.quantite_commandee * ligne.prix_achat_unitaire) | currency:'EUR' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <button (click)="editLigne(ligne)" class="text-indigo-600 hover:text-indigo-900 mr-3 p-1 rounded hover:bg-indigo-50 transition-colors">✎</button>
+                <button (click)="deleteLigne(ligne.id_ligne)" class="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors">🗑️</button>
+              </td>
+            </tr>
+            <tr *ngIf="lignes.length === 0">
+              <td colspan="6" class="px-6 py-8 text-center text-gray-500 italic">Aucun produit dans cette commande.</td>
+            </tr>
+          </tbody>
+          <tfoot class="bg-gray-50" *ngIf="lignes.length > 0">
+            <tr>
+              <td colspan="4" class="px-6 py-3 text-right font-bold text-gray-700">Total Estimé :</td>
+              <td class="px-6 py-3 text-right font-bold text-indigo-600 text-lg">{{ getTotal() | currency:'EUR' }}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Formulaire Ajout/Edition -->
+    <div class="md:col-span-1 bg-white shadow rounded-lg p-6 h-fit sticky top-4">
+      <h3 class="text-xl font-semibold mb-6">{{ selectedLigne.id_ligne ? 'Modifier la ligne' : 'Ajouter un produit' }}</h3>
+      
+      <form (ngSubmit)="saveLigne()">
+        <div class="mb-4">
+          <label for="parfum" class="block text-sm font-medium text-gray-700 mb-1">Parfum *</label>
+          <select id="parfum" [(ngModel)]="selectedLigne.id_parfum" name="parfum" required (change)="onParfumChange()" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+            <option [ngValue]="null">-- Sélectionner --</option>
+            <option *ngFor="let p of parfums" [ngValue]="p.id_parfum">{{ p.nom_parfum }} (Stock: {{ p.stock_actuel }})</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="qty_cmd" class="block text-sm font-medium text-gray-700 mb-1">Qté Commandée *</label>
+            <input type="number" id="qty_cmd" [(ngModel)]="selectedLigne.quantite_commandee" name="qty_cmd" min="1" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+          </div>
+          <div>
+            <label for="qty_rec" class="block text-sm font-medium text-gray-700 mb-1">Qté Reçue</label>
+            <input type="number" id="qty_rec" [(ngModel)]="selectedLigne.quantite_recue" name="qty_rec" min="0" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <label for="prix" class="block text-sm font-medium text-gray-700 mb-1">Prix Achat Unit. (€)</label>
+          <input type="number" id="prix" [(ngModel)]="selectedLigne.prix_achat_unitaire" name="prix" step="0.01" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button type="button" class="px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors" (click)="deleteLigne(selectedLigne.id_ligne)" *ngIf="selectedLigne.id_ligne">Supprimer</button>
+          <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors" (click)="resetForm()" *ngIf="selectedLigne.id_ligne">Ajouter une nouvelle ligne</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center" [disabled]="!selectedLigne.id_parfum || selectedLigne.quantite_commandee < 1 || saving">
+            <svg *ngIf="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ selectedLigne.id_ligne ? 'Mettre à jour la ligne' : 'Enregistrer la ligne' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

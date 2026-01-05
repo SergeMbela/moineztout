@@ -1,0 +1,85 @@
+<div class="container mx-auto p-4">
+  <h2 class="text-2xl font-bold mb-6">Gestion des Mouvements de Stock</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Liste des mouvements -->
+    <div class="md:col-span-1 bg-white shadow rounded-lg p-4 h-fit">
+      <h3 class="text-lg font-semibold mb-4">Historique des mouvements</h3>
+      <div *ngIf="loading" class="text-center text-gray-500 py-4">Chargement...</div>
+      
+      <ul class="space-y-2" *ngIf="!loading">
+        <li *ngFor="let mvt of mouvements" 
+            (click)="selectMouvement(mvt)"
+            class="flex justify-between items-center p-3 rounded cursor-pointer transition-colors border border-gray-100"
+            [class.bg-blue-50]="selectedMouvement.id_mouvement === mvt.id_mouvement"
+            [class.border-blue-200]="selectedMouvement.id_mouvement === mvt.id_mouvement"
+            [class.bg-gray-50]="selectedMouvement.id_mouvement !== mvt.id_mouvement"
+            [class.hover:bg-gray-100]="selectedMouvement.id_mouvement !== mvt.id_mouvement">
+          <div class="flex flex-col">
+            <span class="font-medium">{{ mvt.parfums?.nom_parfum }}</span>
+            <span class="text-sm text-gray-500">
+              {{ mvt.type_mouvement }} • Qté: {{ mvt.quantite }}
+            </span>
+            <span class="text-xs text-gray-400" *ngIf="mvt.date_mouvement">
+              {{ mvt.date_mouvement | date:'dd/MM/yyyy HH:mm' }}
+            </span>
+          </div>
+          <button class="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50 transition-colors" (click)="deleteMouvement(mvt.id_mouvement); $event.stopPropagation()">
+            🗑️
+          </button>
+        </li>
+      </ul>
+      <div *ngIf="!loading && mouvements.length === 0" class="text-center text-gray-500 py-4">
+        Aucun mouvement trouvé.
+      </div>
+    </div>
+
+    <!-- Formulaire d'édition/ajout -->
+    <div class="md:col-span-2 bg-white shadow rounded-lg p-6 h-fit">
+      <h3 class="text-xl font-semibold mb-6">{{ isEditing ? 'Modifier le mouvement' : 'Ajouter un mouvement' }}</h3>
+      
+      <form (ngSubmit)="saveMouvement()">
+        <div class="mb-4">
+          <label for="parfum" class="block text-sm font-medium text-gray-700 mb-1">Parfum *</label>
+          <select id="parfum" [(ngModel)]="selectedMouvement.id_parfum" name="parfum" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+            <option [ngValue]="null">-- Sélectionner --</option>
+            <option *ngFor="let p of parfums" [ngValue]="p.id_parfum">{{ p.nom_parfum }} (Stock: {{ p.stock_actuel }})</option>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type de Mouvement *</label>
+          <select id="type" [(ngModel)]="selectedMouvement.type_mouvement" name="type" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+            <option *ngFor="let t of typesMouvement" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label for="qty" class="block text-sm font-medium text-gray-700 mb-1">Quantité (+/-) *</label>
+          <input type="number" id="qty" [(ngModel)]="selectedMouvement.quantite" name="qty" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+          <small class="text-xs text-gray-500 mt-1 block">Positif pour entrée, Négatif pour sortie</small>
+        </div>
+
+        <div class="mb-6">
+          <label for="ref" class="block text-sm font-medium text-gray-700 mb-1">Référence Document</label>
+          <input type="text" id="ref" [(ngModel)]="selectedMouvement.ref_document" name="ref" placeholder="Ex: INV-2023-001" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+        </div>
+
+        <div class="mb-4 p-3 bg-gray-50 rounded text-sm text-gray-600" *ngIf="isEditing">
+          <p><strong>ID Mouvement:</strong> {{ selectedMouvement.id_mouvement }}</p>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors" (click)="resetForm()" *ngIf="isEditing">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center" [disabled]="!selectedMouvement.id_parfum || !selectedMouvement.quantite || saving">
+            <svg *ngIf="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ isEditing ? 'Mettre à jour' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

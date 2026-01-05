@@ -14,15 +14,15 @@ export class MobileMenuComponent {
   isOpen = false;
 
   menuItems = [
-    { label: 'Tableau de bord', route: '/' },
-    { label: 'Stock', route: '/stock' },
-    { label: 'Fournisseurs', route: '/fournisseurs' },
-    { label: 'Boutique', route: '/boutique' },
-    { label: 'Approvisionnement', route: '/approvisionnement' },
-    { label: 'Prospects', route: '/prospects' },
-    { label: 'Commissions', route: '/commissions' },
-    { label: 'Ventes', route: '/ventes' },
-    { label: 'Achats', route: '/achats' }
+
+    { label: 'Marques', route: '/marques' },
+    { label: 'Parfums', route: '/parfums' },
+    { label: 'Familles Olfactives', route: '/familles-olfactives' },
+    { label: 'Modes de Livraison', route: '/modes-livraison' },
+    { label: 'Clients', route: '/clients' },
+    { label: 'Commandes Clients', route: '/commandes-clients' },
+    { label: 'Commandes Fournisseurs', route: '/commandes-fournisseurs' },
+    { label: 'Mouvements Stock', route: '/mouvements-stock' }
   ];
 
   constructor(
