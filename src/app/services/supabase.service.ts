@@ -434,6 +434,22 @@ export class SupabaseService {
     if (error) throw error;
   }
 
+  // --- GESTION DES TYPES DE CONDITIONNEMENT ---
+
+  async getTypesConditionnement() {
+    const { data, error } = await this.supabase
+      .from('mo_types_conditionnement')
+      .select('*')
+      .order('nom_type');
+    if (error) throw error;
+    return data;
+  }
+
+  async deleteTypeConditionnement(id: number) {
+    const { error } = await this.supabase.from('mo_types_conditionnement').delete().eq('id_type', id);
+    if (error) throw error;
+  }
+
   // --- GESTION DES MODES DE LIVRAISON ---
 
   async getModesLivraison() {
@@ -471,7 +487,7 @@ export class SupabaseService {
   async getParfums() {
     const { data, error } = await this.supabase
       .from('mo_parfums')
-      .select('*, marques:mo_marques(nom_marque), familles_olfactives:mo_familles_olfactives(nom_famille)')
+      .select('*, marques:mo_marques(nom_marque), familles_olfactives:mo_familles_olfactives(nom_famille), types_conditionnement:mo_types_conditionnement(nom_type)')
       .order('nom_parfum');
     if (error) throw error;
     return data;

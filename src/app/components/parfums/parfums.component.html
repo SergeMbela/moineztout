@@ -28,7 +28,7 @@
             <div class="flex flex-col">
               <span class="font-medium">{{ parfum.nom_parfum }}</span>
               <span class="text-sm text-gray-500">
-                {{ parfum.marques?.nom_marque }} • {{ parfum.genre }} • {{ parfum.volume_ml }}ml
+                {{ parfum.marques?.nom_marque }} <span *ngIf="parfum.types_conditionnement?.nom_type">• {{ parfum.types_conditionnement?.nom_type }}</span> • {{ parfum.genre }} • {{ parfum.volume_ml }}ml
               </span>
               <span class="text-xs font-semibold mt-1" [class.text-red-600]="parfum.stock_actuel <= parfum.seuil_alerte" [class.text-green-600]="parfum.stock_actuel > parfum.seuil_alerte">
                 Stock: {{ parfum.stock_actuel }}
@@ -70,6 +70,14 @@
               <option *ngFor="let f of familles" [ngValue]="f.id_famille">{{ f.nom_famille }}</option>
             </select>
           </div>
+        </div>
+
+        <div class="mb-4">
+          <label for="type_cond" class="block text-sm font-medium text-gray-700 mb-1">Type de Conditionnement</label>
+          <select id="type_cond" [(ngModel)]="selectedParfum.id_type_conditionnement" name="type_cond" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+            <option [ngValue]="null">-- Aucun --</option>
+            <option *ngFor="let t of typesConditionnement" [ngValue]="t.id_type">{{ t.nom_type }}</option>
+          </select>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

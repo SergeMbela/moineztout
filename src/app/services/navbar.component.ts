@@ -14,6 +14,7 @@ export class NavbarComponent {
   navItems = [
     { label: 'Marques', path: '/marques' },
     { label: 'Parfums', path: '/parfums' },
+    { label: 'Conditionnements', path: '/types-conditionnement' },
     { label: 'Familles Olfactives', path: '/familles-olfactives' },
     { label: 'Modes de Livraison', path: '/modes-livraison' },
     { label: 'Clients', path: '/clients' },

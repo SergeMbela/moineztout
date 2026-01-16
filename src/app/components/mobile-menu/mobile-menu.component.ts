@@ -17,6 +17,7 @@ export class MobileMenuComponent {
 
     { label: 'Marques', route: '/marques' },
     { label: 'Parfums', route: '/parfums' },
+    { label: 'Conditionnements', route: '/types-conditionnement' },
     { label: 'Familles Olfactives', route: '/familles-olfactives' },
     { label: 'Modes de Livraison', route: '/modes-livraison' },
     { label: 'Clients', route: '/clients' },

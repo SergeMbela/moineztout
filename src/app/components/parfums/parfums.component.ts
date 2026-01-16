@@ -17,6 +17,7 @@ export class ParfumsComponent implements OnInit {
   marques: any[] = [];
   familles: any[] = [];
   fournisseurs: any[] = [];
+  typesConditionnement: any[] = [];
 
   selectedParfum: any = this.getEmptyParfum();
   isEditing = false;
@@ -39,17 +40,19 @@ export class ParfumsComponent implements OnInit {
   async loadData() {
     this.loading = true;
     try {
-      const [parfumsData, marquesData, famillesData, fournisseursData] = await Promise.all([
+      const [parfumsData, marquesData, famillesData, fournisseursData, typesData] = await Promise.all([
         this.supabaseService.getParfums(),
         this.supabaseService.getMarques(),
         this.supabaseService.getFamillesOlfactives(),
-        this.supabaseService.getSuppliersList()
+        this.supabaseService.getSuppliersList(),
+        this.supabaseService.getTypesConditionnement()
       ]);
 
       this.parfums = parfumsData || [];
       this.marques = marquesData || [];
       this.familles = famillesData || [];
       this.fournisseurs = fournisseursData || [];
+      this.typesConditionnement = typesData || [];
     } catch (error) {
       console.error('Erreur chargement données parfums', error);
       this.toastService.error('Impossible de charger les données');
@@ -65,6 +68,7 @@ export class ParfumsComponent implements OnInit {
       id_marque: null,
       id_famille: null,
       id_fournisseur_prefere: null,
+      id_type_conditionnement: null,
       genre: 'Unisexe',
       volume_ml: 100,
       prix_achat: 0,
@@ -103,6 +107,7 @@ export class ParfumsComponent implements OnInit {
         this.selectedParfum.id_marque,
         this.selectedParfum.id_famille,
         this.selectedParfum.id_fournisseur_prefere,
+        this.selectedParfum.id_type_conditionnement,
         this.selectedParfum.genre,
         this.selectedParfum.volume_ml,
         this.selectedParfum.prix_achat,

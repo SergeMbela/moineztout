@@ -57,6 +57,7 @@ export class RpcService {
     idMarque: number,
     idFamille: number,
     idFournisseur: number,
+    idTypeConditionnement: number | null,
     genre: string,
     volume: number,
     prixAchat: number,
@@ -73,6 +74,7 @@ export class RpcService {
       p_id_marque: idMarque,
       p_id_famille: idFamille,
       p_id_fournisseur_prefere: idFournisseur,
+      p_id_type_conditionnement: idTypeConditionnement,
       p_genre: genre,
       p_volume_ml: volume,
       p_prix_achat: prixAchat,
@@ -132,6 +134,14 @@ export class RpcService {
       p_id_parfum: idParfum,
       p_quantite: quantite,
       p_prix_unit: prixUnit
+    });
+  }
+
+  async upsertTypeConditionnement(id: number | null, nom: string, description: string): Promise<number> {
+    return this.callRpc<number>('mo_upsert_type_conditionnement', {
+      p_id_type: id,
+      p_nom_type: nom,
+      p_description: description
     });
   }
 
