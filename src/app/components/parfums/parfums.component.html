@@ -3,7 +3,7 @@
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <!-- Liste des parfums -->
-    <div class="md:col-span-1 bg-white shadow rounded-lg p-4 h-fit">
+    <div class="md:col-span-1 bg-white shadow rounded-lg p-4 h-fit relative z-10">
       <h3 class="text-lg font-semibold mb-4">Liste des parfums</h3>
       <div *ngIf="loading" class="text-center text-gray-500 py-4">Chargement...</div>
       
@@ -17,7 +17,7 @@
             [class.hover:bg-gray-100]="selectedParfum.id_parfum !== parfum.id_parfum">
           <div class="flex items-center gap-3">
             <div class="relative group">
-              <div class="w-12 h-12 flex-shrink-0 bg-white rounded-lg border border-gray-200 overflow-hidden flex items-center justify-center cursor-zoom-in">
+              <div class="w-12 h-12 flex-shrink-0 bg-white rounded-lg border border-gray-200 overflow-hidden flex items-center justify-center cursor-zoom-in transform-gpu">
                 <img *ngIf="parfum.url_image_principale" [src]="parfum.url_image_principale" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" alt="">
                 <span *ngIf="!parfum.url_image_principale" class="text-xl">🧴</span>
               </div>
