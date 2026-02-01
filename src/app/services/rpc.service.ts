@@ -67,8 +67,8 @@ export class RpcService {
     urlImagePrincipale: string | null,
     urlImageSecondaire: string | null,
     urlVideoYoutube: string | null
-  ): Promise<number> {
-    return this.callRpc<number>('mo_upsert_parfum', {
+  ): Promise<void> {
+    return this.callRpc<void>('upsert_parfum', {
       p_id_parfum: id,
       p_nom_parfum: nom,
       p_id_marque: idMarque,
