@@ -104,7 +104,6 @@ export class RpcService {
       p_telephone: telephone
     });
   }
-
   async upsertCommandeClient(
     idCmd: number | null,
     idClient: number,
