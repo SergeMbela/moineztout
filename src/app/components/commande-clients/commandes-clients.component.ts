@@ -15,6 +15,12 @@ import { ToastService } from '../../services/toast.service';
 })
 export class CommandesClientsComponent implements OnInit {
   commandes: any[] = [];
+  filteredCommandes: any[] = [];
+  paginatedCommandes: any[] = [];
+  currentPage = 1;
+  itemsPerPage = 15;
+  totalPages = 1;
+  searchTerm: string = '';
   clients: any[] = [];
   modesLivraison: any[] = [];
 
@@ -43,6 +49,7 @@ export class CommandesClientsComponent implements OnInit {
         this.supabaseService.getModesLivraison()
       ]);
       this.commandes = cmds || [];
+      this.filterCommandes();
       this.clients = clientsData || [];
       this.modesLivraison = modesData || [];
     } catch (error) {
@@ -50,6 +57,33 @@ export class CommandesClientsComponent implements OnInit {
       this.toastService.error('Impossible de charger les données');
     } finally {
       this.loading = false;
+    }
+  }
+
+  filterCommandes() {
+    if (!this.searchTerm) {
+      this.filteredCommandes = [...this.commandes];
+      return;
+    }
+    const term = this.searchTerm.toLowerCase();
+    this.filteredCommandes = this.commandes.filter(cmd => {
+      const clientName = ((cmd.clients?.nom || '') + ' ' + (cmd.clients?.prenom || '')).toLowerCase();
+      return clientName.includes(term) || String(cmd.id_cmd_client).includes(term);
+    });
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  updatePagination() {
+    this.totalPages = Math.ceil(this.filteredCommandes.length / this.itemsPerPage) || 1;
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    this.paginatedCommandes = this.filteredCommandes.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePagination();
     }
   }
 
@@ -62,7 +96,8 @@ export class CommandesClientsComponent implements OnInit {
       adresse_livraison: '',
       frais_port_factures: 0,
       numero_suivi: '',
-      date_expedition: null
+      date_expedition: null,
+      id_payment_intent_stripe: null
     };
   }
 
@@ -95,7 +130,8 @@ export class CommandesClientsComponent implements OnInit {
         this.selectedCommande.adresse_livraison,
         this.selectedCommande.frais_port_factures,
         this.selectedCommande.numero_suivi,
-        this.selectedCommande.date_expedition || null
+        this.selectedCommande.date_expedition || null,
+        this.selectedCommande.id_payment_intent_stripe || null
       );
       this.toastService.success('Commande enregistrée avec succès');
       this.loadData();

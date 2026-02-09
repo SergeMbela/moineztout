@@ -10,6 +10,10 @@
                (ngModelChange)="filterData()">
       </div>
       <div class="kpi-card">
+        <span class="kpi-label">Bénéfice Réel (Ventes)</span>
+        <span class="kpi-value">{{ totalBeneficeReel | currency:'EUR':'symbol':'1.2-2' }}</span>
+      </div>
+      <div class="kpi-card">
         <span class="kpi-label">Bénéfice Potentiel (Stock)</span>
         <span class="kpi-value">{{ totalBeneficePotentiel | currency:'EUR':'symbol':'1.2-2' }}</span>
       </div>
@@ -34,7 +38,11 @@
       </thead>
       <tbody>
         <tr *ngFor="let item of paginatedBenefices">
-          <td><strong>{{ item.nom }}</strong></td>
+          <td>
+            <a href="javascript:void(0)" (click)="openHistoryModal(item)" style="text-decoration: underline; color: #4f46e5; cursor: pointer;">
+              <strong>{{ item.nom }}</strong>
+            </a>
+          </td>
           <td>{{ item.marque }}</td>
           <td class="text-right">{{ item.prixAchat | currency:'EUR':'symbol':'1.2-2' }}</td>
           <td class="text-right">{{ item.prixVente | currency:'EUR':'symbol':'1.2-2' }}</td>
@@ -68,6 +76,59 @@
       <select [(ngModel)]="itemsPerPage" (ngModelChange)="currentPage = 1; updatePagination()" class="items-select">
         <option *ngFor="let opt of pageOptions" [value]="opt">{{ opt }} / page</option>
       </select>
+    </div>
+  </div>
+
+  <!-- Modal Historique des Ventes -->
+  <div *ngIf="showHistoryModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+    <div style="background: white; padding: 20px; border-radius: 8px; width: 80%; max-width: 800px; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 600;">Historique des ventes : {{ selectedParfumName }}</h3>
+        <button (click)="closeHistoryModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280;">&times;</button>
+      </div>
+
+      <div *ngIf="loadingHistory" style="text-align: center; padding: 20px;">Chargement...</div>
+
+      <div *ngIf="!loadingHistory && selectedParfumHistory.length > 0" style="height: 250px; margin-bottom: 20px;">
+        <canvas baseChart
+          [data]="historyChartData"
+          [options]="historyChartOptions"
+          [type]="'line'">
+        </canvas>
+      </div>
+
+      <div *ngIf="!loadingHistory && selectedParfumHistory.length > 0" style="overflow-x: auto;">
+        <table class="table" style="width: 100%; border-collapse: collapse;">
+          <thead style="background-color: #f9fafb;">
+            <tr>
+              <th style="padding: 12px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: #6b7280;">Date</th>
+              <th style="padding: 12px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: #6b7280;">Commande</th>
+              <th style="padding: 12px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: #6b7280;">Statut</th>
+              <th style="padding: 12px; text-align: right; font-size: 0.75rem; text-transform: uppercase; color: #6b7280;">Qté</th>
+              <th style="padding: 12px; text-align: right; font-size: 0.75rem; text-transform: uppercase; color: #6b7280;">P.U.</th>
+              <th style="padding: 12px; text-align: right; font-size: 0.75rem; text-transform: uppercase; color: #6b7280;">Total</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <tr *ngFor="let h of selectedParfumHistory">
+              <td style="padding: 12px;">{{ h.date | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td style="padding: 12px;">#{{ h.id_cmd }}</td>
+              <td style="padding: 12px;">{{ h.statut }}</td>
+              <td style="padding: 12px; text-align: right;">{{ h.quantite }}</td>
+              <td style="padding: 12px; text-align: right;">{{ h.prix_unitaire | currency:'EUR':'symbol':'1.2-2' }}</td>
+              <td style="padding: 12px; text-align: right; font-weight: 600;">{{ h.total | currency:'EUR':'symbol':'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!loadingHistory && selectedParfumHistory.length === 0" style="text-align: center; padding: 20px; color: #6b7280;">
+        Aucune vente enregistrée pour ce parfum.
+      </div>
+      
+      <div style="margin-top: 20px; text-align: right;">
+        <button (click)="closeHistoryModal()" style="padding: 8px 16px; background-color: #e5e7eb; color: #374151; border: none; border-radius: 4px; cursor: pointer;">Fermer</button>
+      </div>
     </div>
   </div>
 </div>

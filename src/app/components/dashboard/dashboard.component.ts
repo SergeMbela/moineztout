@@ -125,7 +125,7 @@ export class DashboardComponent implements OnInit {
     try {
       // 1. Récupérer les alertes de stock (toujours global)
       const globalStats = await this.supabaseService.getDashboardStats();
-      let ca = globalStats.ca_mois_en_cours;
+      let ca = 0;
       let nb_commandes = globalStats.nb_commandes_mois;
       let caProgression = 0;
       let cmdProgression = 0;
@@ -133,7 +133,11 @@ export class DashboardComponent implements OnInit {
       // 2. Si filtre activé, récupérer les stats de la période
       if (this.startDate && this.endDate) {
         const periodStats = await this.supabaseService.getStatsForPeriod(this.startDate, this.endDate);
-        ca = periodStats.ca;
+        // Calcul du CA (Paiements) pour la période
+        const start = new Date(this.startDate);
+        const end = new Date(this.endDate);
+        end.setHours(23, 59, 59, 999);
+        ca = await this.calculatePayments(start, end);
         nb_commandes = periodStats.count;
         
         this.recentSales = await this.supabaseService.getVentesHistory(this.startDate, this.endDate);
@@ -142,6 +146,10 @@ export class DashboardComponent implements OnInit {
         // Sinon, comportement par défaut (mois en cours) + Calcul progression
         this.recentSales = await this.supabaseService.getVentesHistory();
         this.topProducts = await this.supabaseService.getTopSellingProducts();
+
+        // Calcul du CA (Paiements) pour le mois en cours
+        const startCurrentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        ca = await this.calculatePayments(startCurrentMonth, new Date());
 
         // Calcul de la progression (Mois en cours vs Mois dernier à la même date)
         const today = new Date();
@@ -158,8 +166,10 @@ export class DashboardComponent implements OnInit {
           this.formatDate(endPrevMonth)
         );
 
-        if (prevStats.ca > 0) {
-          caProgression = ((ca - prevStats.ca) / prevStats.ca) * 100;
+        // Progression CA (Paiements)
+        const prevCa = await this.calculatePayments(startPrevMonth, endPrevMonth);
+        if (prevCa > 0) {
+          caProgression = ((ca - prevCa) / prevCa) * 100;
         }
         if (prevStats.count > 0) {
           cmdProgression = ((nb_commandes - prevStats.count) / prevStats.count) * 100;
@@ -175,10 +185,62 @@ export class DashboardComponent implements OnInit {
         nb_commandes_progression: cmdProgression
       };
 
-      // Charge les données du graphique
-      const chartData = await this.supabaseService.getMonthlyRevenueStats();
-      this.lineChartData.labels = chartData.labels;
-      this.lineChartData.datasets[0].data = chartData.data;
+      // Charge les données du graphique (Paiements)
+      const startChart = this.startDate ? new Date(this.startDate) : new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1);
+      const endChart = this.endDate ? new Date(this.endDate) : new Date();
+      if (this.endDate) endChart.setHours(23, 59, 59, 999);
+
+      const { data: payments, error: paymentsError } = await this.supabaseService.client
+        .from('mo_commandes_clients')
+        .select(`
+          date_commande,
+          frais_port_factures,
+          mo_ligne_vente (
+            quantite,
+            prix_unitaire_facture
+          )
+        `)
+        .not('id_payment_intent_stripe', 'is', null)
+        .gte('date_commande', startChart.toISOString())
+        .lte('date_commande', endChart.toISOString())
+        .order('date_commande', { ascending: true });
+
+      if (paymentsError) throw paymentsError;
+
+      const labels: string[] = [];
+      const statsByMonth = new Map<string, number>();
+      let loopDate = new Date(startChart);
+      loopDate.setDate(1);
+
+      while (loopDate <= endChart) {
+        const monthLabel = loopDate.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+        const formattedLabel = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+        if (!statsByMonth.has(formattedLabel)) {
+          labels.push(formattedLabel);
+          statsByMonth.set(formattedLabel, 0);
+        }
+        loopDate.setMonth(loopDate.getMonth() + 1);
+      }
+
+      payments?.forEach((order: any) => {
+        const orderDate = new Date(order.date_commande);
+        const monthLabel = orderDate.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+        const formattedLabel = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+        
+        if (statsByMonth.has(formattedLabel)) {
+          let orderTotal = Number(order.frais_port_factures || 0);
+          if (order.mo_ligne_vente) {
+            order.mo_ligne_vente.forEach((line: any) => {
+              orderTotal += (Number(line.quantite) * Number(line.prix_unitaire_facture));
+            });
+          }
+          statsByMonth.set(formattedLabel, (statsByMonth.get(formattedLabel) || 0) + orderTotal);
+        }
+      });
+
+      this.lineChartData.labels = labels;
+      this.lineChartData.datasets[0].data = Array.from(statsByMonth.values());
+      this.lineChartData.datasets[0].label = 'Paiements Reçus (€)';
       this.lineChartData = { ...this.lineChartData }; // Force update
 
       // Charge les données du Pie Chart (Familles)
@@ -191,6 +253,36 @@ export class DashboardComponent implements OnInit {
     } finally {
       this.loading = false;
     }
+  }
+
+  async calculatePayments(start: Date, end: Date): Promise<number> {
+    const { data, error } = await this.supabaseService.client
+      .from('mo_commandes_clients')
+      .select(`
+        frais_port_factures,
+        mo_ligne_vente (
+          quantite,
+          prix_unitaire_facture
+        )
+      `)
+      .not('id_payment_intent_stripe', 'is', null)
+      .gte('date_commande', start.toISOString())
+      .lte('date_commande', end.toISOString());
+
+    if (error) {
+      console.error('Error calculating payments', error);
+      return 0;
+    }
+
+    return (data || []).reduce((total: number, order: any) => {
+      let orderTotal = Number(order.frais_port_factures || 0);
+      if (order.mo_ligne_vente) {
+        order.mo_ligne_vente.forEach((line: any) => {
+          orderTotal += (Number(line.quantite) * Number(line.prix_unitaire_facture));
+        });
+      }
+      return total + orderTotal;
+    }, 0);
   }
 
   applyFilter() {

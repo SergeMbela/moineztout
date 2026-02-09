@@ -5,10 +5,17 @@
     <!-- Liste des commandes -->
     <div class="md:col-span-1 bg-white shadow rounded-lg p-4 h-fit">
       <h3 class="text-lg font-semibold mb-4">Liste des commandes</h3>
+      
+      <div class="mb-4">
+        <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="filterCommandes()" 
+               placeholder="Rechercher (Client, ID)..." 
+               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+      </div>
+
       <div *ngIf="loading" class="text-center text-gray-500 py-4">Chargement...</div>
       
       <ul class="space-y-2" *ngIf="!loading">
-        <li *ngFor="let cmd of commandes" 
+        <li *ngFor="let cmd of paginatedCommandes" 
             (click)="selectCommande(cmd)"
             class="flex justify-between items-center p-3 rounded cursor-pointer transition-colors border border-gray-100"
             [class.bg-blue-50]="selectedCommande.id_cmd_client === cmd.id_cmd_client"
@@ -20,6 +27,12 @@
             <span class="text-sm text-gray-500">
               {{ cmd.statut }} • {{ cmd.modes_livraison?.nom_mode }}
             </span>
+            <span *ngIf="cmd.montant_total || cmd.amount" class="font-bold text-gray-800">
+              {{ (cmd.montant_total || cmd.amount) | currency:'EUR' }}
+            </span>
+            <span *ngIf="cmd.id_payment_intent_stripe" class="text-xs font-medium text-green-600">
+              Payé en ligne
+            </span>
             <span class="text-xs text-gray-400" *ngIf="cmd.date_commande">
               {{ cmd.date_commande | date:'dd/MM/yyyy' }}
             </span>
@@ -29,8 +42,22 @@
           </button>
         </li>
       </ul>
-      <div *ngIf="!loading && commandes.length === 0" class="text-center text-gray-500 py-4">
+      <div *ngIf="!loading && filteredCommandes.length === 0" class="text-center text-gray-500 py-4">
         Aucune commande trouvée.
+      </div>
+
+      <div *ngIf="!loading && totalPages > 1" class="mt-4 flex justify-between items-center">
+        <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1"
+                class="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed">
+          Précédent
+        </button>
+        <span class="text-sm text-gray-600">
+          Page {{ currentPage }} sur {{ totalPages }}
+        </span>
+        <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages"
+                class="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed">
+          Suivant
+        </button>
       </div>
     </div>
 

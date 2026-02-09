@@ -2,6 +2,20 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../services/supabase.service';
+import { BaseChartDirective } from 'ng2-charts';
+import {
+  Chart,
+  ChartConfiguration,
+  ChartOptions,
+  LineController,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js';
 
 interface BeneficeRow {
   id: number;
@@ -15,10 +29,12 @@ interface BeneficeRow {
   beneficeStock: number;
 }
 
+Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler);
+
 @Component({
   selector: 'app-benefice',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BaseChartDirective],
   templateUrl: './benefice.component.html',
   styleUrl: './benefice.component.css'
 })
@@ -33,10 +49,49 @@ export class BeneficeComponent implements OnInit {
   pageOptions = [5, 10, 20, 50, 100];
 
   totalBeneficePotentiel = 0;
+  totalBeneficeReel = 0;
   searchTerm: string = '';
   loading = true;
   sortColumn: string = 'beneficeStock';
   sortDirection: 'asc' | 'desc' = 'desc';
+
+  // Propriétés pour l'historique des ventes
+  selectedParfumHistory: any[] = [];
+  selectedParfumName: string = '';
+  showHistoryModal: boolean = false;
+  loadingHistory: boolean = false;
+
+  // Configuration du graphique historique
+  public historyChartData: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: [
+      {
+        data: [],
+        label: 'Quantité Vendue',
+        fill: true,
+        tension: 0.4,
+        borderColor: '#4f46e5',
+        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+        pointBackgroundColor: '#4f46e5',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#4f46e5'
+      }
+    ]
+  };
+
+  public historyChartOptions: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (c) => `Quantité: ${c.parsed.y}` } }
+    },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 } },
+      x: { grid: { display: false } }
+    }
+  };
 
   constructor(private supabaseService: SupabaseService) {}
 
@@ -47,8 +102,18 @@ export class BeneficeComponent implements OnInit {
   async loadData() {
     this.loading = true;
     try {
-      const parfums = await this.supabaseService.getParfums();
-      
+      const [parfums, lignesVenteResult] = await Promise.all([
+        this.supabaseService.getParfums(),
+        // Note: This assumes `supabaseService.supabase` is a public SupabaseClient instance.
+        this.supabaseService.client.from('mo_ligne_vente').select(`
+          quantite,
+          prix_unitaire_facture,
+          parfums:mo_parfums (
+            prix_achat
+          )
+        `)
+      ]);
+
       if (parfums) {
         this.benefices = parfums.map((p: any) => {
           const pa = Number(p.prix_achat);
@@ -76,6 +141,20 @@ export class BeneficeComponent implements OnInit {
         
         // Initialiser les données filtrées et trier
         this.filterData();
+      }
+
+      const { data: lignesVente, error: errorLignes } = lignesVenteResult;
+      if (errorLignes) throw errorLignes;
+
+      if (lignesVente) {
+        this.totalBeneficeReel = lignesVente.reduce((sum, ligne: any) => {
+          const parfum = Array.isArray(ligne.parfums) ? ligne.parfums[0] : ligne.parfums;
+          const prixAchat = Number(parfum?.prix_achat || 0);
+          const prixVente = Number(ligne.prix_unitaire_facture || 0);
+          const quantite = Number(ligne.quantite || 0);
+          const beneficeLigne = (prixVente - prixAchat) * quantite;
+          return sum + beneficeLigne;
+        }, 0);
       }
     } catch (error) {
       console.error('Erreur calcul bénéfices:', error);
@@ -140,5 +219,74 @@ export class BeneficeComponent implements OnInit {
   getSortIcon(column: string): string {
     if (this.sortColumn !== column) return ' ↕';
     return this.sortDirection === 'asc' ? ' ▲' : ' ▼';
+  }
+
+  async openHistoryModal(item: any) {
+    this.selectedParfumName = item.nom;
+    this.showHistoryModal = true;
+    this.loadingHistory = true;
+    this.selectedParfumHistory = [];
+
+    try {
+      const { data, error } = await this.supabaseService.client
+        .from('mo_ligne_vente')
+        .select(`
+          quantite,
+          prix_unitaire_facture,
+          mo_commandes_clients (
+            id_cmd_client,
+            date_commande,
+            statut
+          )
+        `)
+        .eq('id_parfum', item.id);
+
+      if (error) throw error;
+
+      if (data) {
+        this.selectedParfumHistory = data
+          .map((line: any) => ({
+            date: line.mo_commandes_clients?.date_commande,
+            id_cmd: line.mo_commandes_clients?.id_cmd_client,
+            statut: line.mo_commandes_clients?.statut,
+            quantite: line.quantite,
+            prix_unitaire: line.prix_unitaire_facture,
+            total: line.quantite * line.prix_unitaire_facture
+          }))
+          // Tri par date décroissante
+          .sort((a: any, b: any) => {
+            const dateA = a.date ? new Date(a.date).getTime() : 0;
+            const dateB = b.date ? new Date(b.date).getTime() : 0;
+            return dateB - dateA;
+          });
+
+        // Préparation des données pour le graphique (Tri chronologique croissant)
+        const chartDataMap = new Map<string, number>();
+        const sortedForChart = [...data].sort((a: any, b: any) => {
+          const dateA = new Date(a.mo_commandes_clients?.date_commande || 0).getTime();
+          const dateB = new Date(b.mo_commandes_clients?.date_commande || 0).getTime();
+          return dateA - dateB;
+        });
+
+        sortedForChart.forEach((line: any) => {
+          if (line.mo_commandes_clients?.date_commande) {
+            const dateLabel = new Date(line.mo_commandes_clients.date_commande).toLocaleDateString('fr-FR');
+            const qty = Number(line.quantite || 0);
+            chartDataMap.set(dateLabel, (chartDataMap.get(dateLabel) || 0) + qty);
+          }
+        });
+        this.historyChartData.labels = Array.from(chartDataMap.keys());
+        this.historyChartData.datasets[0].data = Array.from(chartDataMap.values());
+        this.historyChartData = { ...this.historyChartData }; // Force refresh
+      }
+    } catch (err) {
+      console.error('Erreur chargement historique', err);
+    } finally {
+      this.loadingHistory = false;
+    }
+  }
+
+  closeHistoryModal() {
+    this.showHistoryModal = false;
   }
 }

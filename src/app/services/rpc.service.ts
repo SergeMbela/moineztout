@@ -112,7 +112,8 @@ export class RpcService {
     adresse: string,
     fraisPort: number,
     numSuivi: string,
-    dateExpedition: Date | string | null
+    dateExpedition: Date | string | null,
+    idPaymentIntentStripe: string | null
   ): Promise<number> {
     return this.callRpc<number>('mo_upsert_commande_client', {
       p_id_cmd_client: idCmd,
@@ -122,7 +123,8 @@ export class RpcService {
       p_adresse_livraison: adresse,
       p_frais_port: fraisPort,
       p_numero_suivi: numSuivi,
-      p_date_expedition: dateExpedition
+      p_date_expedition: dateExpedition,
+      p_id_payment_intent_stripe: idPaymentIntentStripe
     });
   }
 
