@@ -54,11 +54,11 @@ export class RpcService {
   async upsertParfum(
     id: number | null,
     nom: string,
-    idMarque: number,
-    idFamille: number,
-    idFournisseur: number,
+    idMarque: number | null,
+    idFamille: number | null,
+    idFournisseur: number | null,
     idTypeConditionnement: number | null,
-    genre: string,
+    genre: string | null,
     volume: number,
     prixAchat: number,
     prixVente: number,
@@ -68,22 +68,22 @@ export class RpcService {
     urlImageSecondaire: string | null,
     urlVideoYoutube: string | null
   ): Promise<void> {
-    return this.callRpc<void>('upsert_parfum', {
+    return this.callRpc<void>('mo_upsert_parfum', {
       p_id_parfum: id,
       p_nom_parfum: nom,
       p_id_marque: idMarque,
       p_id_famille: idFamille,
       p_id_fournisseur_prefere: idFournisseur,
       p_id_type_conditionnement: idTypeConditionnement,
-      p_genre: genre,
+      p_genre: genre || null,
       p_volume_ml: volume,
       p_prix_achat: prixAchat,
       p_prix_vente: prixVente,
       p_stock_actuel: stock,
       p_seuil_alerte: seuilAlerte,
-      p_url_image_principale: urlImagePrincipale,
-      p_url_image_secondaire: urlImageSecondaire,
-      p_url_video_youtube: urlVideoYoutube
+      p_url_image_principale: urlImagePrincipale || null,
+      p_url_image_secondaire: urlImageSecondaire || null,
+      p_url_video_youtube: urlVideoYoutube || null
     });
   }
 

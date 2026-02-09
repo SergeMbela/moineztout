@@ -12,6 +12,7 @@ import { CommandesFournisseursComponent } from './components/commande-fournisseu
 import { LignesAchatComponent } from './components/ligne-achat/lignes-achat.component';
 import { MouvementsStockComponent } from './components/stock-mouvement/mouvements-stock.component';
 import { TypesConditionnementComponent } from './components/types-conditionnement/types-conditionnement.component';
+import { BeneficeComponent } from './components/benefice/benefice.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -27,5 +28,7 @@ export const routes: Routes = [
   { path: 'commandes-fournisseurs', component: CommandesFournisseursComponent },
   { path: 'commandes-fournisseurs/:id/lignes', component: LignesAchatComponent },
   { path: 'mouvements-stock', component: MouvementsStockComponent },
+
   { path: 'types-conditionnement', component: TypesConditionnementComponent },
+  { path: 'benefice-stock', component: BeneficeComponent },
 ];

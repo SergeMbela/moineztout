@@ -20,6 +20,7 @@ export class NavbarComponent {
     { label: 'Clients', path: '/clients' },
     { label: 'Commandes Clients', path: '/commandes-clients' },
     { label: 'Commandes Fournisseurs', path: '/commandes-fournisseurs' },
-    { label: 'Mouvements Stock', path: '/mouvements-stock' }
+    { label: 'Mouvements Stock', path: '/mouvements-stock' },
+    { label: 'Bénéfices', path: '/benefice-stock' }
   ];
 }

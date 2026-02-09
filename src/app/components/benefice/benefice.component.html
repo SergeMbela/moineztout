@@ -1,0 +1,73 @@
+<div class="container">
+  <div class="header-section">
+    <h2>Analyse des Bénéfices & Marges</h2>
+    <div class="header-actions">
+      <div class="search-wrapper">
+        <input type="text" 
+               class="search-input" 
+               placeholder="Rechercher un parfum..." 
+               [(ngModel)]="searchTerm" 
+               (ngModelChange)="filterData()">
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Bénéfice Potentiel (Stock)</span>
+        <span class="kpi-value">{{ totalBeneficePotentiel | currency:'EUR':'symbol':'1.2-2' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">Chargement des données...</div>
+
+  <div class="table-responsive" *ngIf="!loading">
+    <table class="table">
+      <thead>
+        <tr>
+          <th (click)="sortData('nom')" class="sortable">Parfum{{ getSortIcon('nom') }}</th>
+          <th (click)="sortData('marque')" class="sortable">Marque{{ getSortIcon('marque') }}</th>
+          <th class="text-right">Prix Achat</th>
+          <th class="text-right">Prix Vente</th>
+          <th class="text-right sortable" (click)="sortData('margeUnitaire')">Marge Unit.{{ getSortIcon('margeUnitaire') }}</th>
+          <th class="text-right sortable" (click)="sortData('tauxMarque')">Taux Marque{{ getSortIcon('tauxMarque') }}</th>
+          <th class="text-center sortable" (click)="sortData('stock')">Stock{{ getSortIcon('stock') }}</th>
+          <th class="text-right sortable" (click)="sortData('beneficeStock')">Bénéfice Stock{{ getSortIcon('beneficeStock') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of paginatedBenefices">
+          <td><strong>{{ item.nom }}</strong></td>
+          <td>{{ item.marque }}</td>
+          <td class="text-right">{{ item.prixAchat | currency:'EUR':'symbol':'1.2-2' }}</td>
+          <td class="text-right">{{ item.prixVente | currency:'EUR':'symbol':'1.2-2' }}</td>
+          
+          <td class="text-right" [ngClass]="{'text-success': item.margeUnitaire > 0, 'text-danger': item.margeUnitaire <= 0}">
+            {{ item.margeUnitaire | currency:'EUR':'symbol':'1.2-2' }}
+          </td>
+          
+          <td class="text-right">
+            <span class="badge" [ngClass]="{'badge-success': item.tauxMarque >= 30, 'badge-warning': item.tauxMarque < 30 && item.tauxMarque > 0, 'badge-danger': item.tauxMarque <= 0}">
+              {{ item.tauxMarque | number:'1.1-1' }}%
+            </span>
+          </td>
+          
+          <td class="text-center">{{ item.stock }}</td>
+          <td class="text-right font-weight-bold">{{ item.beneficeStock | currency:'EUR':'symbol':'1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination-controls" *ngIf="!loading && filteredBenefices.length > 0">
+    <div class="pagination-info">
+      Total : {{ filteredBenefices.length }} parfums
+    </div>
+    <div class="pagination-actions">
+      <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1" class="btn-page">Précédent</button>
+      <span class="page-number">Page {{ currentPage }} / {{ totalPages }}</span>
+      <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages" class="btn-page">Suivant</button>
+      
+      <select [(ngModel)]="itemsPerPage" (ngModelChange)="currentPage = 1; updatePagination()" class="items-select">
+        <option *ngFor="let opt of pageOptions" [value]="opt">{{ opt }} / page</option>
+      </select>
+    </div>
+  </div>
+</div>

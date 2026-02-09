@@ -1,0 +1,130 @@
+.container {
+  padding: 20px;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  padding: 10px 15px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  width: 250px;
+  outline: none;
+}
+.search-input:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.kpi-card {
+  background: #f8f9fa;
+  padding: 15px 25px;
+  border-radius: 8px;
+  border-left: 5px solid #28a745;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.kpi-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #6c757d;
+  text-transform: uppercase;
+}
+
+.kpi-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #28a745;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.table th, .table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #dee2e6;
+  text-align: left;
+}
+
+.table th {
+  background-color: #f1f3f5;
+  font-weight: 600;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.sortable:hover {
+  background-color: #e2e6ea;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 0 0 8px 8px;
+}
+
+.pagination-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-page {
+  padding: 6px 12px;
+  border: 1px solid #ced4da;
+  background-color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-page:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.items-select {
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #ced4da;
+}
+
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.font-weight-bold { font-weight: bold; }
+
+.text-success { color: #28a745; }
+.text-danger { color: #dc3545; }
+
+.badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85em; color: white; }
+.badge-success { background-color: #28a745; }
+.badge-warning { background-color: #ffc107; color: #212529; }
+.badge-danger { background-color: #dc3545; }

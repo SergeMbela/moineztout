@@ -23,13 +23,15 @@ export class MobileMenuComponent {
     { label: 'Clients', route: '/clients' },
     { label: 'Commandes Clients', route: '/commandes-clients' },
     { label: 'Commandes Fournisseurs', route: '/commandes-fournisseurs' },
-    { label: 'Mouvements Stock', route: '/mouvements-stock' }
+    { label: 'Mouvements Stock', route: '/mouvements-stock' },
+    { label: 'Benefices', route: '/benefice-stock' }
+
   ];
 
   constructor(
     private supabase: SupabaseService,
     private router: Router
-  ) {}
+  ) { }
 
   toggleMenu() {
     this.isOpen = !this.isOpen;
