@@ -24,8 +24,14 @@ export class ParfumsComponent implements OnInit {
   loading = false;
   saving = false;
   uploading = false;
+  isSearchingImages = false;
+  foundImages: any[] = [];
 
   genres = ['Homme', 'Femme', 'Unisexe'];
+
+  // Pagination
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
 
   constructor(
     private supabaseService: SupabaseService,
@@ -84,11 +90,13 @@ export class ParfumsComponent implements OnInit {
   selectParfum(parfum: any) {
     this.selectedParfum = { ...parfum };
     this.isEditing = true;
+    this.foundImages = [];
   }
 
   resetForm() {
     this.selectedParfum = this.getEmptyParfum();
     this.isEditing = false;
+    this.foundImages = [];
   }
 
   async saveParfum() {
@@ -174,6 +182,75 @@ export class ParfumsComponent implements OnInit {
     }
   }
 
+  async onFileImport(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const text = e.target.result;
+      console.log('CSV Content:', text);
+      this.toastService.success('Fichier CSV lu (traitement à implémenter)');
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // Reset input to allow re-selection
+  }
+
+  async autoFillImages() {
+    if (!this.selectedParfum.nom_parfum) {
+      this.toastService.error('Veuillez renseigner le nom du parfum');
+      return;
+    }
+
+    this.isSearchingImages = true;
+    const marque = this.getMarqueName(this.selectedParfum.id_marque);
+    // Construction d'une requête précise pour Google Images
+    const query = `${marque !== 'Inconnue' ? marque : ''} ${this.selectedParfum.nom_parfum} parfum bottle`;
+
+    try {
+      // Accès au client Supabase via le service (en supposant que la propriété 'supabase' ou 'client' est publique)
+      const supabase = (this.supabaseService as any).supabase || (this.supabaseService as any).client;
+      
+      if (!supabase) {
+        throw new Error('Client Supabase non accessible dans SupabaseService');
+      }
+
+      const { data, error } = await supabase.functions.invoke('image-google', {
+        body: { query, count: 4 },
+      });
+
+      if (error) throw error;
+
+      if (data && data.success && data.data && data.data.length > 0) {
+        this.foundImages = data.data;
+        this.toastService.success(`${data.saved_count} images trouvées. Sélectionnez-les ci-dessous.`);
+      } else {
+        this.toastService.error('Aucune image trouvée pour cette recherche');
+      }
+
+    } catch (error: any) {
+      console.error('Erreur recherche images:', error);
+      this.toastService.error(`Erreur: ${error.message || 'Échec de la recherche d\'images'}`);
+    } finally {
+      this.isSearchingImages = false;
+    }
+  }
+
+  onNameClick(parfum: any, event: Event) {
+    event.stopPropagation(); // Empêche la sélection standard de la ligne si nécessaire
+    this.selectParfum(parfum); // Sélectionne le parfum pour remplir le formulaire
+    this.autoFillImages(); // Lance la recherche d'images
+  }
+
+  selectImageFor(url: string, type: 'principale' | 'secondaire') {
+    if (type === 'principale') {
+      this.selectedParfum.url_image_principale = url;
+    } else {
+      this.selectedParfum.url_image_secondaire = url;
+    }
+    this.toastService.success(`Image ${type} mise à jour`);
+  }
+
   // Helpers pour l'affichage
   getMarqueName(id: number): string {
     const m = this.marques.find(x => x.id_marque === id);
@@ -183,5 +260,54 @@ export class ParfumsComponent implements OnInit {
   getFamilleName(id: number): string {
     const f = this.familles.find(x => x.id_famille === id);
     return f ? f.nom_famille : '-';
+  }
+
+  get paginatedParfums() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.parfums.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  get totalPages() {
+    return Math.ceil(this.parfums.length / this.itemsPerPage) || 1;
+  }
+
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  downloadCSV() {
+    if (!this.parfums || this.parfums.length === 0) {
+      this.toastService.error('Aucune donnée à exporter');
+      return;
+    }
+
+    const headers = ['ID', 'Nom', 'Marque', 'Famille', 'Genre', 'Volume (ml)', 'Prix Achat', 'Prix Vente', 'Stock'];
+    
+    const csvRows = this.parfums.map(p => {
+      return [
+        p.id_parfum,
+        `"${(p.nom_parfum || '').replace(/"/g, '""')}"`,
+        `"${this.getMarqueName(p.id_marque).replace(/"/g, '""')}"`,
+        `"${this.getFamilleName(p.id_famille).replace(/"/g, '""')}"`,
+        p.genre,
+        p.volume_ml,
+        p.prix_achat,
+        p.prix_vente,
+        p.stock_actuel
+      ].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...csvRows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `parfums_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }
