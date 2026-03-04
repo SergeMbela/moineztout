@@ -37,7 +37,7 @@ export class ParfumsComponent implements OnInit {
     private supabaseService: SupabaseService,
     private rpcService: RpcService,
     private toastService: ToastService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadData();
@@ -100,7 +100,10 @@ export class ParfumsComponent implements OnInit {
   }
 
   async saveParfum() {
-    console.log(this.selectedParfum);
+    console.log('🔍 Données complètes:', this.selectedParfum);
+    console.log('🖼️ Image principale:', this.selectedParfum.url_image_principale);
+    console.log('🖼️ Image secondaire:', this.selectedParfum.url_image_secondaire);
+    console.log('🎬 Vidéo YouTube:', this.selectedParfum.url_video_youtube);
     if (!this.selectedParfum.nom_parfum || !this.selectedParfum.id_marque) {
       this.toastService.error('Veuillez remplir les champs obligatoires (Nom, Marque)');
       return;
@@ -210,7 +213,7 @@ export class ParfumsComponent implements OnInit {
     try {
       // Accès au client Supabase via le service (en supposant que la propriété 'supabase' ou 'client' est publique)
       const supabase = (this.supabaseService as any).supabase || (this.supabaseService as any).client;
-      
+
       if (!supabase) {
         throw new Error('Client Supabase non accessible dans SupabaseService');
       }
@@ -284,7 +287,7 @@ export class ParfumsComponent implements OnInit {
     }
 
     const headers = ['ID', 'Nom', 'Marque', 'Famille', 'Genre', 'Volume (ml)', 'Prix Achat', 'Prix Vente', 'Stock'];
-    
+
     const csvRows = this.parfums.map(p => {
       return [
         p.id_parfum,
